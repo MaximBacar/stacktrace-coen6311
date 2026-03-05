@@ -3,6 +3,11 @@ from rest_framework import serializers
 from .models import Member, Coach, Administrator
 
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+
 class BaseUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
