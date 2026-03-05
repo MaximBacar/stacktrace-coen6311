@@ -1,13 +1,33 @@
+import { useMutation } from '@tanstack/react-query'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { loginUser } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
+    const { login } = useAuth()
+    const navigate = useNavigate()
+
+    const { mutate, isPending, isError, error } = useMutation({
+        mutationFn: loginUser,
+        onSuccess: (res) => {
+            login(res.data)
+            navigate('/')
+        },
+    })
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        const form = new FormData(e.target)
+        mutate({ email: form.get('email'), password: form.get('password') })
+    }
+
     return (
         <section className="flex min-h-0 h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
-            <form action="" className="max-w-92 m-auto h-fit w-full">
+            <form onSubmit={handleSubmit} className="max-w-92 m-auto h-fit w-full">
                 <div className="p-6">
                     <div>
                         <Link to="/" aria-label="go home">
@@ -54,7 +74,12 @@ export default function LoginPage() {
                             <Input type="password" required name="password" id="password" />
                         </div>
 
-                        <Button className="w-full">Sign In</Button>
+                        <Button className="w-full" disabled={isPending}>
+                            {isPending ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                        {isError && (
+                            <p className="text-red-500 text-sm">{error.response?.data?.error ?? 'Login failed'}</p>
+                        )}
                     </div>
                 </div>
 
