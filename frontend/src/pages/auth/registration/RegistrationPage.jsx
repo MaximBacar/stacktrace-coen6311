@@ -1,16 +1,40 @@
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { registerUser } from '@/lib/api'
 
 export default function RegistrationPage() {
     const [role, setRole] = useState('member')
+    const navigate = useNavigate()
+
+    const { mutate, isPending, isError, error } = useMutation({
+        mutationFn: registerUser,
+        onSuccess: () => {
+            navigate('/login')
+        },
+    })
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        const form = new FormData(e.target)
+        mutate({
+            first_name: form.get('first_name'),
+            last_name:  form.get('last_name'),
+            email:      form.get('email'),
+            password:   form.get('password'),
+            height: 183,
+            role,
+            ...(role === 'member' && { dob: form.get('dob') }),
+        })
+    }
 
     return (
         <section className="flex min-h-0 h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-transparent">
-            <form action="" className="max-w-92 m-auto h-fit w-full">
+            <form onSubmit={handleSubmit} className="max-w-92 m-auto h-fit w-full">
                 <div className="p-6">
                     <div>
                         <Link to="/" aria-label="go home">
@@ -64,7 +88,12 @@ export default function RegistrationPage() {
                             </div>
                         )}
 
-                        <Button className="w-full">Create Account</Button>
+                        <Button className="w-full" disabled={isPending}>
+                            {isPending ? 'Creating...' : 'Create Account'}
+                        </Button>
+                        {isError && (
+                            <p className="text-red-500 text-sm">{error.response?.data?.message ?? 'Registration failed'}</p>
+                        )}
                     </div>
                 </div>
 
