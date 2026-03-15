@@ -29,6 +29,13 @@ export default function RegistrationPage() {
             height: 183,
             role,
             ...(role === 'member' && { dob: form.get('dob') }),
+            ...(role === 'coach' && {
+                biography: form.get('biography'),
+                availability: (form.get('availability') ?? '')
+                    .split('\n')
+                    .map((slot) => slot.trim())
+                    .filter(Boolean),
+            }),
         })
     }
 
@@ -86,6 +93,33 @@ export default function RegistrationPage() {
                                 <Label htmlFor="dob" className="block text-sm">Date of Birth</Label>
                                 <Input type="date" id="dob" name="dob" required />
                             </div>
+                        )}
+
+                        {role === 'coach' && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="biography" className="block text-sm">Biography</Label>
+                                    <textarea
+                                        id="biography"
+                                        name="biography"
+                                        required
+                                        rows="4"
+                                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                        placeholder="Share your coaching style, specialties, and who you work best with."
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="availability" className="block text-sm">Availability</Label>
+                                    <textarea
+                                        id="availability"
+                                        name="availability"
+                                        rows="4"
+                                        className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                        placeholder={"Add one time slot per line\nMon 6:00 PM\nWed 7:30 AM"}
+                                    />
+                                </div>
+                            </>
                         )}
 
                         <Button className="w-full" disabled={isPending}>
