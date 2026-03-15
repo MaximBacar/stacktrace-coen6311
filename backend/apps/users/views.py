@@ -3,8 +3,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User
-from .serializers import LoginSerializer, MemberSerializer, CoachSerializer, AdminSerializer
+from .models import User, Coach
+from .serializers import (
+    LoginSerializer,
+    MemberSerializer,
+    CoachSerializer,
+    CoachDirectorySerializer,
+    AdminSerializer,
+)
 
 ROLE_SERIALIZERS = {
     'member': MemberSerializer,
@@ -52,3 +58,10 @@ class LoginView(APIView):
             'access': str(refresh.access_token),
             'refresh': str(refresh),
         }, status=status.HTTP_200_OK)
+
+
+class CoachListView(APIView):
+    def get(self, request):
+        coaches = Coach.objects.order_by('first_name', 'last_name')
+        serializer = CoachDirectorySerializer(coaches, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

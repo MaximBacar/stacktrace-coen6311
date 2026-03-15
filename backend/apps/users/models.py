@@ -28,6 +28,7 @@ class Member(User):
 
 class Coach(User):
     biography = models.TextField()
+    availability = models.JSONField(default=list, blank=True)
 
     class Meta:
         db_table = 'coaches'
