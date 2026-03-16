@@ -29,9 +29,26 @@ class MemberSerializer(BaseUserSerializer):
 
 
 class CoachSerializer(BaseUserSerializer):
+    availability = serializers.ListField(
+        child=serializers.CharField(max_length=120),
+        allow_empty=True,
+        required=False,
+    )
+
     class Meta(BaseUserSerializer.Meta):
         model = Coach
-        fields = BaseUserSerializer.Meta.fields + ['biography']
+        fields = BaseUserSerializer.Meta.fields + ['biography', 'availability']
+
+
+class CoachDirectorySerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Coach
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'biography', 'availability']
+
+    def get_full_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'.strip()
 
 
 class AdminSerializer(BaseUserSerializer):
