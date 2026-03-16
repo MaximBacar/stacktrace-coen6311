@@ -9,6 +9,7 @@ from .serializers import (
     MemberSerializer,
     CoachSerializer,
     CoachDirectorySerializer,
+    CoachingSessionSerializer,
     AdminSerializer,
 )
 
@@ -65,3 +66,13 @@ class CoachListView(APIView):
         coaches = Coach.objects.order_by('first_name', 'last_name')
         serializer = CoachDirectorySerializer(coaches, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CoachingSessionBookingView(APIView):
+    def post(self, request):
+        serializer = CoachingSessionSerializer(data=request.data)
+        if serializer.is_valid():
+            session = serializer.save()
+            return Response(CoachingSessionSerializer(session).data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
