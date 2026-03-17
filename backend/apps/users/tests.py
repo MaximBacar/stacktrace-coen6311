@@ -70,3 +70,35 @@ class CoachingSessionBookingTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn('scheduled_slot', response.data)
+
+    def test_member_can_view_booked_sessions(self):
+        CoachingSession.objects.create(
+            member=self.member,
+            coach=self.coach,
+            scheduled_slot='Mon 6:00 PM',
+            goals='Build a four-week strength plan.',
+        )
+
+        response = self.client.get(f'/api/users/coaching-sessions/?member_id={self.member.id}')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['coach_name'], 'Casey Jordan')
+
+    def test_member_can_cancel_session_and_restore_slot(self):
+        self.coach.availability = ['Wed 7:30 AM']
+        self.coach.save(update_fields=['availability'])
+        session = CoachingSession.objects.create(
+            member=self.member,
+            coach=self.coach,
+            scheduled_slot='Mon 6:00 PM',
+            goals='Build a four-week strength plan.',
+        )
+
+        response = self.client.delete(f'/api/users/coaching-sessions/{session.id}/?member_id={self.member.id}')
+
+        self.assertEqual(response.status_code, 200)
+        session.refresh_from_db()
+        self.assertEqual(session.status, 'canceled')
+        self.coach.refresh_from_db()
+        self.assertIn('Mon 6:00 PM', self.coach.availability)

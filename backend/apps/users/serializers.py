@@ -55,10 +55,11 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
 class CoachingSessionSerializer(serializers.ModelSerializer):
     member_id = serializers.PrimaryKeyRelatedField(queryset=Member.objects.all(), source='member')
     coach_id = serializers.PrimaryKeyRelatedField(queryset=Coach.objects.all(), source='coach')
+    coach_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CoachingSession
-        fields = ['id', 'member_id', 'coach_id', 'scheduled_slot', 'goals', 'status', 'created_at']
+        fields = ['id', 'member_id', 'coach_id', 'coach_name', 'scheduled_slot', 'goals', 'status', 'created_at']
         read_only_fields = ['id', 'status', 'created_at']
 
     def validate(self, attrs):
@@ -81,6 +82,9 @@ class CoachingSessionSerializer(serializers.ModelSerializer):
         coach.availability = availability
         coach.save(update_fields=['availability'])
         return super().create(validated_data)
+
+    def get_coach_name(self, obj):
+        return f'{obj.coach.first_name} {obj.coach.last_name}'.strip()
 
 
 class AdminSerializer(BaseUserSerializer):
