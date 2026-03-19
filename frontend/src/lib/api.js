@@ -40,3 +40,4 @@ export default api
 export const registerUser = (data) => authApi.post('/api/users/register/', data)
 export const loginUser    = (data) => authApi.post('/api/users/login/', data)
 export const fetchCoaches = () => authApi.get('/api/users/coaches/')
+export const bookCoachingSession = (data) => authApi.post('/api/users/coaching-sessions/', data)

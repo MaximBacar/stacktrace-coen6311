@@ -1,13 +1,39 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, Search, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { fetchCoaches } from '@/lib/api'
+import { bookCoachingSession, fetchCoaches } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 
-function CoachCard({ coach }) {
+function CoachCard({ coach, canBook, memberId, onBooked }) {
+  const [selectedSlot, setSelectedSlot] = useState(coach.availability[0] ?? '')
+  const [goals, setGoals] = useState('')
+  const bookingMutation = useMutation({
+    mutationFn: bookCoachingSession,
+    onSuccess: () => {
+      setGoals('')
+      setSelectedSlot('')
+      onBooked()
+    },
+  })
+
+  const handleBooking = (event) => {
+    event.preventDefault()
+    if (!selectedSlot || !memberId) {
+      return
+    }
+
+    bookingMutation.mutate({
+      member_id: memberId,
+      coach_id: coach.id,
+      scheduled_slot: selectedSlot,
+      goals,
+    })
+  }
+
   return (
     <article className="flex h-full flex-col rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition-transform duration-200 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-4">
@@ -29,18 +55,64 @@ function CoachCard({ coach }) {
           <CalendarDays className="size-4 text-orange-600" />
           Availability
         </div>
-        <div className="flex flex-wrap gap-2">
-          {coach.availability.length > 0 ? coach.availability.map((slot) => (
-            <span
-              key={`${coach.id}-${slot}`}
-              className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700"
+        {coach.availability.length > 0 ? (
+          <form className="space-y-4" onSubmit={handleBooking}>
+            <div className="flex flex-wrap gap-2">
+              {coach.availability.map((slot) => (
+                <button
+                  key={`${coach.id}-${slot}`}
+                  type="button"
+                  onClick={() => setSelectedSlot(slot)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                    selectedSlot === slot
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-zinc-100 text-zinc-700 hover:bg-orange-100'
+                  }`}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={goals}
+              onChange={(event) => setGoals(event.target.value)}
+              rows="4"
+              required
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-2xl border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              placeholder="What kind of structured support are you looking for?"
+            />
+
+            <Button
+              type="submit"
+              disabled={!canBook || !selectedSlot || bookingMutation.isPending}
+              className="w-full rounded-full bg-orange-600 hover:bg-orange-700"
             >
-              {slot}
-            </span>
-          )) : (
-            <span className="text-sm text-zinc-500">No availability posted yet.</span>
-          )}
-        </div>
+              {bookingMutation.isPending ? 'Booking...' : 'Book session'}
+            </Button>
+
+            {!canBook && (
+              <p className="text-sm text-zinc-500">
+                Sign in as a member to book this session.
+              </p>
+            )}
+
+            {bookingMutation.isError && (
+              <p className="text-sm text-red-600">
+                {bookingMutation.error?.response?.data?.scheduled_slot?.[0]
+                  ?? 'We could not book that session right now.'}
+              </p>
+            )}
+
+            {bookingMutation.isSuccess && (
+              <p className="text-sm text-green-700">
+                Session booked. The coach&apos;s availability has been updated.
+              </p>
+            )}
+          </form>
+        ) : (
+          <span className="text-sm text-zinc-500">No availability posted yet.</span>
+        )}
       </div>
     </article>
   )
@@ -48,6 +120,8 @@ function CoachCard({ coach }) {
 
 export default function CoachDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('')
+  const queryClient = useQueryClient()
+  const { isAuthenticated, user } = useAuth()
   const { data, isLoading, isError } = useQuery({
     queryKey: ['coaches'],
     queryFn: async () => {
@@ -57,6 +131,7 @@ export default function CoachDirectoryPage() {
   })
 
   const coaches = data ?? []
+  const memberId = user?.user_id
   const filteredCoaches = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     if (!query) {
@@ -131,7 +206,13 @@ export default function CoachDirectoryPage() {
             {filteredCoaches.length > 0 ? (
               <div className="mt-4 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {filteredCoaches.map((coach) => (
-                  <CoachCard key={coach.id} coach={coach} />
+                  <CoachCard
+                    key={coach.id}
+                    coach={coach}
+                    canBook={isAuthenticated}
+                    memberId={memberId}
+                    onBooked={() => queryClient.invalidateQueries({ queryKey: ['coaches'] })}
+                  />
                 ))}
               </div>
             ) : (
