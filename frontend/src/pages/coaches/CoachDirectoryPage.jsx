@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { bookCoachingSession, fetchCoaches } from '@/lib/api'
+import { bookCoachingSession, cancelCoachingSession, fetchCoaches, fetchMemberSessions } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
 
 function CoachCard({ coach, canBook, memberId, onBooked }) {
@@ -118,10 +118,72 @@ function CoachCard({ coach, canBook, memberId, onBooked }) {
   )
 }
 
+function SessionList({ sessions, memberId, onCanceled }) {
+  const cancelMutation = useMutation({
+    mutationFn: ({ sessionId }) => cancelCoachingSession(sessionId, memberId),
+    onSuccess: () => onCanceled(),
+  })
+
+  if (!memberId) {
+    return null
+  }
+
+  return (
+    <section className="mt-8 rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-600">My Sessions</p>
+          <h2 className="mt-2 text-2xl font-semibold text-zinc-950">Manage your coaching schedule</h2>
+        </div>
+        <p className="text-sm text-zinc-500">{sessions.length} active booking{sessions.length === 1 ? '' : 's'}</p>
+      </div>
+
+      {sessions.length > 0 ? (
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {sessions.map((session) => (
+            <article key={session.id} className="rounded-3xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-zinc-900">{session.coach_name}</h3>
+                  <p className="mt-1 text-sm text-zinc-600">{session.scheduled_slot}</p>
+                </div>
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
+                  {session.status}
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-zinc-600">{session.goals}</p>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={cancelMutation.isPending}
+                onClick={() => cancelMutation.mutate({ sessionId: session.id })}
+                className="mt-5 rounded-full"
+              >
+                {cancelMutation.isPending ? 'Cancelling...' : 'Cancel session'}
+              </Button>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-6 text-sm text-zinc-600">
+          You do not have any active sessions yet. Book one below when you are ready.
+        </p>
+      )}
+
+      {cancelMutation.isError && (
+        <p className="mt-4 text-sm text-red-600">
+          {cancelMutation.error?.response?.data?.error ?? 'We could not cancel that session right now.'}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export default function CoachDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const queryClient = useQueryClient()
   const { isAuthenticated, user } = useAuth()
+  const memberId = user?.user_id
   const { data, isLoading, isError } = useQuery({
     queryKey: ['coaches'],
     queryFn: async () => {
@@ -129,9 +191,17 @@ export default function CoachDirectoryPage() {
       return response.data
     },
   })
+  const sessionsQuery = useQuery({
+    queryKey: ['member-sessions', memberId],
+    queryFn: async () => {
+      const response = await fetchMemberSessions(memberId)
+      return response.data
+    },
+    enabled: Boolean(memberId),
+  })
 
   const coaches = data ?? []
-  const memberId = user?.user_id
+  const activeSessions = (sessionsQuery.data ?? []).filter((session) => session.status !== 'canceled')
   const filteredCoaches = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     if (!query) {
@@ -182,6 +252,15 @@ export default function CoachDirectoryPage() {
           </div>
         </div>
 
+        <SessionList
+          sessions={activeSessions}
+          memberId={memberId}
+          onCanceled={() => {
+            queryClient.invalidateQueries({ queryKey: ['coaches'] })
+            queryClient.invalidateQueries({ queryKey: ['member-sessions', memberId] })
+          }}
+        />
+
         {isLoading && (
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
@@ -211,7 +290,10 @@ export default function CoachDirectoryPage() {
                     coach={coach}
                     canBook={isAuthenticated}
                     memberId={memberId}
-                    onBooked={() => queryClient.invalidateQueries({ queryKey: ['coaches'] })}
+                    onBooked={() => {
+                      queryClient.invalidateQueries({ queryKey: ['coaches'] })
+                      queryClient.invalidateQueries({ queryKey: ['member-sessions', memberId] })
+                    }}
                   />
                 ))}
               </div>
