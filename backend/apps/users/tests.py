@@ -102,3 +102,22 @@ class CoachingSessionBookingTests(TestCase):
         self.assertEqual(session.status, 'canceled')
         self.coach.refresh_from_db()
         self.assertIn('Mon 6:00 PM', self.coach.availability)
+
+    def test_member_can_view_rejected_status_and_reason(self):
+        CoachingSession.objects.create(
+            member=self.member,
+            coach=self.coach,
+            scheduled_slot='Mon 6:00 PM',
+            goals='Build a four-week strength plan.',
+            status='rejected',
+            rejection_reason='The coach is fully booked for that program this week.',
+        )
+
+        response = self.client.get(f'/api/users/coaching-sessions/?member_id={self.member.id}')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['status'], 'rejected')
+        self.assertEqual(
+            response.data[0]['rejection_reason'],
+            'The coach is fully booked for that program this week.',
+        )

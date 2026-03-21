@@ -40,6 +40,7 @@ class CoachingSession(models.Model):
     scheduled_slot = models.CharField(max_length=120)
     goals = models.TextField()
     status = models.CharField(max_length=20, default='booked')
+    rejection_reason = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
