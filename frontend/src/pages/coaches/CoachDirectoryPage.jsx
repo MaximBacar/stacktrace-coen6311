@@ -132,10 +132,10 @@ function SessionList({ sessions, memberId, onCanceled }) {
     <section className="mt-8 rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-600">My Sessions</p>
-          <h2 className="mt-2 text-2xl font-semibold text-zinc-950">Manage your coaching schedule</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-600">My Requests</p>
+          <h2 className="mt-2 text-2xl font-semibold text-zinc-950">Track your booking status</h2>
         </div>
-        <p className="text-sm text-zinc-500">{sessions.length} active booking{sessions.length === 1 ? '' : 's'}</p>
+        <p className="text-sm text-zinc-500">{sessions.length} request{sessions.length === 1 ? '' : 's'}</p>
       </div>
 
       {sessions.length > 0 ? (
@@ -152,21 +152,31 @@ function SessionList({ sessions, memberId, onCanceled }) {
                 </span>
               </div>
               <p className="mt-4 text-sm leading-6 text-zinc-600">{session.goals}</p>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate({ sessionId: session.id })}
-                className="mt-5 rounded-full"
-              >
-                {cancelMutation.isPending ? 'Cancelling...' : 'Cancel session'}
-              </Button>
+
+              {session.status === 'rejected' && session.rejection_reason && (
+                <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-700">Reason</p>
+                  <p className="mt-2 text-sm leading-6 text-red-800">{session.rejection_reason}</p>
+                </div>
+              )}
+
+              {session.status !== 'canceled' && session.status !== 'rejected' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={cancelMutation.isPending}
+                  onClick={() => cancelMutation.mutate({ sessionId: session.id })}
+                  className="mt-5 rounded-full"
+                >
+                  {cancelMutation.isPending ? 'Cancelling...' : 'Cancel session'}
+                </Button>
+              )}
             </article>
           ))}
         </div>
       ) : (
         <p className="mt-6 text-sm text-zinc-600">
-          You do not have any active sessions yet. Book one below when you are ready.
+          You do not have any booking requests yet. Book one below when you are ready.
         </p>
       )}
 
@@ -201,7 +211,7 @@ export default function CoachDirectoryPage() {
   })
 
   const coaches = data ?? []
-  const activeSessions = (sessionsQuery.data ?? []).filter((session) => session.status !== 'canceled')
+  const memberSessions = sessionsQuery.data ?? []
   const filteredCoaches = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     if (!query) {
@@ -253,7 +263,7 @@ export default function CoachDirectoryPage() {
         </div>
 
         <SessionList
-          sessions={activeSessions}
+          sessions={memberSessions}
           memberId={memberId}
           onCanceled={() => {
             queryClient.invalidateQueries({ queryKey: ['coaches'] })

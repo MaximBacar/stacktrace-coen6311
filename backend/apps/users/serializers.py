@@ -59,8 +59,8 @@ class CoachingSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoachingSession
-        fields = ['id', 'member_id', 'coach_id', 'coach_name', 'scheduled_slot', 'goals', 'status', 'created_at']
-        read_only_fields = ['id', 'status', 'created_at']
+        fields = ['id', 'member_id', 'coach_id', 'coach_name', 'scheduled_slot', 'goals', 'status', 'rejection_reason', 'created_at']
+        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at']
 
     def validate(self, attrs):
         coach = attrs['coach']

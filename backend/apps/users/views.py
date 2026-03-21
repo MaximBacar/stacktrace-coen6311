@@ -101,6 +101,9 @@ class CoachingSessionDetailView(APIView):
         if session.status == 'canceled':
             return Response({'error': 'Session is already canceled.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if session.status == 'rejected':
+            return Response({'error': 'Rejected requests cannot be canceled.'}, status=status.HTTP_400_BAD_REQUEST)
+
         coach = session.coach
         availability = list(coach.availability or [])
         if session.scheduled_slot not in availability:
