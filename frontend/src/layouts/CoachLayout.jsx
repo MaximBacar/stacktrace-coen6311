@@ -1,16 +1,14 @@
-import { LayoutDashboard, User, GitPullRequestDraft, Calendar, Settings } from 'lucide-react'
+import { LayoutDashboard, Inbox, Users, CalendarDays, Settings } from 'lucide-react'
 import { CuSidebar } from './Sidebar'
 
 const navItems = [
-  { label: 'Dashboard', to: '/',        icon: LayoutDashboard },
-  { label: 'Requests',  to: '/requests',icon: GitPullRequestDraft},
-  { label: 'Clients',  to: '/clients',  icon: User           },
-  { label: 'Calendar', to: '/nutrition',icon: Calendar           },
-  { label: 'Settings',  to: '/settings',icon: Settings        },
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Requests',  to: '/requests',  icon: Inbox           },
+  { label: 'Clients',   to: '/clients',   icon: Users           },
+  { label: 'Calendar',  to: '/calendar',  icon: CalendarDays    },
+  { label: 'Settings',  to: '/settings',  icon: Settings        },
 ]
 
 export default function CoachLayout() {
-  return (
-    <CuSidebar navItems={navItems}/>
-  )
+  return <CuSidebar navItems={navItems} />
 }
