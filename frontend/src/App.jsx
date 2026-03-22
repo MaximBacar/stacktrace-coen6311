@@ -12,12 +12,13 @@ import SettingsPage      from './pages/members/settings/SettingsPage'
 import CoachingPage      from './pages/members/coaching/CoachingPage'
 import MemberLayout      from './layouts/MemberLayout'
 
-import CoachLayout       from './layouts/CoachLayout'
-import DashboardPage     from './pages/coaches/DashboardPage'
-import RequestsPage      from './pages/coaches/RequestsPage'
-import ClientsPage       from './pages/coaches/ClientsPage'
-import CalendarPage      from './pages/coaches/CalendarPage'
-import CoachSettingsPage from './pages/coaches/CoachSettingsPage'
+import CoachLayout          from './layouts/CoachLayout'
+import DashboardPage        from './pages/coaches/DashboardPage'
+import RequestsPage         from './pages/coaches/RequestsPage'
+import ClientsPage          from './pages/coaches/ClientsPage'
+import CalendarPage         from './pages/coaches/CalendarPage'
+import CoachSettingsPage    from './pages/coaches/CoachSettingsPage'
+import CoachWorkoutsPage    from './pages/coaches/CoachWorkoutsPage'
 
 export function App() {
   return (
@@ -44,11 +45,12 @@ export function App() {
 
               <Route element={<RoleRoute role="coach" />}>
                 <Route element={<CoachLayout />}>
-                  <Route path="/dashboard" element={<DashboardPage />}     />
-                  <Route path="/requests"  element={<RequestsPage />}      />
-                  <Route path="/clients"   element={<ClientsPage />}       />
-                  <Route path="/calendar"  element={<CalendarPage />}      />
-                  <Route path="/settings"  element={<CoachSettingsPage />} />
+                  <Route path="/dashboard"       element={<DashboardPage />}     />
+                  <Route path="/requests"        element={<RequestsPage />}      />
+                  <Route path="/clients"         element={<ClientsPage />}       />
+                  <Route path="/calendar"        element={<CalendarPage />}      />
+                  <Route path="/coach/workouts"  element={<CoachWorkoutsPage />} />
+                  <Route path="/settings"        element={<CoachSettingsPage />} />
                 </Route>
               </Route>
 

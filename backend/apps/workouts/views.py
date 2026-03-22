@@ -15,54 +15,62 @@ from .serializers import (
 )
 
 
-def _get_plan(plan_id, user_id):
-    return WorkoutPlan.objects.get(pk=plan_id, member_id=user_id)
+def _owner_filter(user_id, user_role):
+    return {'coach_id': user_id} if user_role == 'coach' else {'member_id': user_id}
 
 
-def _get_day(plan_id, day_id, user_id):
-    return WorkoutDay.objects.get(pk=day_id, workout_plan_id=plan_id, workout_plan__member_id=user_id)
+def _get_plan(plan_id, user_id, user_role):
+    return WorkoutPlan.objects.get(pk=plan_id, **_owner_filter(user_id, user_role))
 
 
-def _get_exercise(plan_id, day_id, exercise_id, user_id):
+def _get_day(plan_id, day_id, user_id, user_role):
+    f = {f'workout_plan__{k}': v for k, v in _owner_filter(user_id, user_role).items()}
+    return WorkoutDay.objects.get(pk=day_id, workout_plan_id=plan_id, **f)
+
+
+def _get_exercise(plan_id, day_id, exercise_id, user_id, user_role):
+    f = {f'workout_day__workout_plan__{k}': v for k, v in _owner_filter(user_id, user_role).items()}
     return WorkoutExercise.objects.get(
         pk=exercise_id, workout_day_id=day_id,
         workout_day__workout_plan_id=plan_id,
-        workout_day__workout_plan__member_id=user_id,
+        **f,
     )
 
 
 class WorkoutPlanView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def get(self, request):
-        plans = WorkoutPlan.objects.filter(member_id=request.user_id).prefetch_related('days__exercises')
+        plans = WorkoutPlan.objects.filter(**_owner_filter(request.user_id, request.user_role)).prefetch_related('days__exercises')
         return Response(WorkoutPlanSerializer(plans, many=True).data)
 
-    @role_required('member')
+    @role_required('member', 'coach')
     @transaction.atomic
     def post(self, request):
         serializer = CreateWorkoutPlanSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        plan = serializer.save(member_id=request.user_id)
+        plan = serializer.save(**_owner_filter(request.user_id, request.user_role))
         WorkoutDay.objects.create(workout_plan=plan, day_index=1, name='Day A')
 
         return Response(WorkoutPlanSerializer(plan).data, status=status.HTTP_201_CREATED)
 
 
 class WorkoutPlanDetailView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def get(self, request, plan_id):
         try:
-            plan = WorkoutPlan.objects.prefetch_related('days__exercises').get(pk=plan_id, member_id=request.user_id)
+            plan = WorkoutPlan.objects.prefetch_related('days__exercises').get(
+                pk=plan_id, **_owner_filter(request.user_id, request.user_role)
+            )
         except WorkoutPlan.DoesNotExist:
             return Response({'error': 'Workout plan not found.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(WorkoutPlanSerializer(plan).data)
 
-    @role_required('member')
+    @role_required('member', 'coach')
     def patch(self, request, plan_id):
         try:
-            plan = _get_plan(plan_id, request.user_id)
+            plan = _get_plan(plan_id, request.user_id, request.user_role)
         except WorkoutPlan.DoesNotExist:
             return Response({'error': 'Workout plan not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -72,10 +80,10 @@ class WorkoutPlanDetailView(APIView):
         serializer.save()
         return Response(WorkoutPlanSerializer(plan).data)
 
-    @role_required('member')
+    @role_required('member', 'coach')
     def delete(self, request, plan_id):
         try:
-            plan = _get_plan(plan_id, request.user_id)
+            plan = _get_plan(plan_id, request.user_id, request.user_role)
         except WorkoutPlan.DoesNotExist:
             return Response({'error': 'Workout plan not found.'}, status=status.HTTP_404_NOT_FOUND)
         plan.delete()
@@ -83,10 +91,10 @@ class WorkoutPlanDetailView(APIView):
 
 
 class WorkoutDayView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def post(self, request, plan_id):
         try:
-            plan = _get_plan(plan_id, request.user_id)
+            plan = _get_plan(plan_id, request.user_id, request.user_role)
         except WorkoutPlan.DoesNotExist:
             return Response({'error': 'Workout plan not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -99,10 +107,10 @@ class WorkoutDayView(APIView):
 
 
 class WorkoutDayDetailView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def patch(self, request, plan_id, day_id):
         try:
-            day = _get_day(plan_id, day_id, request.user_id)
+            day = _get_day(plan_id, day_id, request.user_id, request.user_role)
         except WorkoutDay.DoesNotExist:
             return Response({'error': 'Workout day not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -112,10 +120,10 @@ class WorkoutDayDetailView(APIView):
         serializer.save()
         return Response(CreateWorkoutDaySerializer(day).data)
 
-    @role_required('member')
+    @role_required('member', 'coach')
     def delete(self, request, plan_id, day_id):
         try:
-            day = _get_day(plan_id, day_id, request.user_id)
+            day = _get_day(plan_id, day_id, request.user_id, request.user_role)
         except WorkoutDay.DoesNotExist:
             return Response({'error': 'Workout day not found.'}, status=status.HTTP_404_NOT_FOUND)
         day.delete()
@@ -123,10 +131,10 @@ class WorkoutDayDetailView(APIView):
 
 
 class WorkoutExerciseView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def post(self, request, plan_id, day_id):
         try:
-            day = _get_day(plan_id, day_id, request.user_id)
+            day = _get_day(plan_id, day_id, request.user_id, request.user_role)
         except WorkoutDay.DoesNotExist:
             return Response({'error': 'Workout day not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -139,10 +147,10 @@ class WorkoutExerciseView(APIView):
 
 
 class WorkoutExerciseDetailView(APIView):
-    @role_required('member')
+    @role_required('member', 'coach')
     def patch(self, request, plan_id, day_id, exercise_id):
         try:
-            exercise = _get_exercise(plan_id, day_id, exercise_id, request.user_id)
+            exercise = _get_exercise(plan_id, day_id, exercise_id, request.user_id, request.user_role)
         except WorkoutExercise.DoesNotExist:
             return Response({'error': 'Exercise not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -152,10 +160,10 @@ class WorkoutExerciseDetailView(APIView):
         serializer.save()
         return Response(AddExerciseSerializer(exercise).data)
 
-    @role_required('member')
+    @role_required('member', 'coach')
     def delete(self, request, plan_id, day_id, exercise_id):
         try:
-            exercise = _get_exercise(plan_id, day_id, exercise_id, request.user_id)
+            exercise = _get_exercise(plan_id, day_id, exercise_id, request.user_id, request.user_role)
         except WorkoutExercise.DoesNotExist:
             return Response({'error': 'Exercise not found.'}, status=status.HTTP_404_NOT_FOUND)
         exercise.delete()

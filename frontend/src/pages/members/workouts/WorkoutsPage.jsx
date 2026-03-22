@@ -285,6 +285,12 @@ export default function WorkoutsPage() {
                             {plan.days.length} day{plan.days.length !== 1 ? 's' : ''}
                             {activePlanId === plan.id && <span className="ml-2 text-foreground font-medium">· active</span>}
                           </p>
+                          <p className="text-xs mt-0.5">
+                            {plan.createdBy?.type === 'coach'
+                              ? <span className="text-blue-500">Assigned by {plan.createdBy.name}</span>
+                              : <span className="text-muted-foreground/60">Created by you</span>
+                            }
+                          </p>
                         </div>
                         <button onClick={e => { e.stopPropagation(); deletePlanMutation.mutate(plan.id) }}
                           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
