@@ -27,7 +27,12 @@ class Member(User):
 
 
 class Coach(User):
-    biography = models.TextField()
+    biography    = models.TextField()
+    specialty    = models.CharField(max_length=100, blank=True)
+    rating       = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    price        = models.IntegerField(default=0, help_text='Price per session in dollars')
+    tags         = models.JSONField(default=list)
+    avatar_url   = models.URLField(blank=True)
     availability = models.JSONField(default=list, blank=True)
 
     class Meta:

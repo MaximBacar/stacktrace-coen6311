@@ -193,7 +193,7 @@ export default function CoachDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const queryClient = useQueryClient()
   const { isAuthenticated, user } = useAuth()
-  const memberId = user?.user_id
+  const memberId = user?.id
   const { data, isLoading, isError } = useQuery({
     queryKey: ['coaches'],
     queryFn: async () => {

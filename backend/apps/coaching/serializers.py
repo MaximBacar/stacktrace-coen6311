@@ -6,13 +6,18 @@ from .models import CoachingSession
 
 
 class CoachingSessionSerializer(serializers.ModelSerializer):
-    member_id = serializers.PrimaryKeyRelatedField(queryset=Member.objects.all(), source='member')
-    coach_id = serializers.PrimaryKeyRelatedField(queryset=Coach.objects.all(), source='coach')
-    coach_name = serializers.SerializerMethodField(read_only=True)
+    member_id        = serializers.PrimaryKeyRelatedField(queryset=Member.objects.all(), source='member')
+    coach_id         = serializers.PrimaryKeyRelatedField(queryset=Coach.objects.all(), source='coach')
+    coach_name       = serializers.SerializerMethodField(read_only=True)
+    coach_specialty  = serializers.CharField(source='coach.specialty', read_only=True)
+    coach_avatar_url = serializers.URLField(source='coach.avatar_url', read_only=True)
 
     class Meta:
         model = CoachingSession
-        fields = ['id', 'member_id', 'coach_id', 'coach_name', 'scheduled_slot', 'goals', 'status', 'rejection_reason', 'created_at']
+        fields = [
+            'id', 'member_id', 'coach_id', 'coach_name', 'coach_specialty', 'coach_avatar_url',
+            'scheduled_slot', 'duration', 'goals', 'status', 'rejection_reason', 'created_at',
+        ]
         read_only_fields = ['id', 'status', 'rejection_reason', 'created_at']
 
     def validate(self, attrs):

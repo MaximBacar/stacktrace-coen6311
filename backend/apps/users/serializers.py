@@ -41,14 +41,33 @@ class CoachSerializer(BaseUserSerializer):
 
 
 class CoachDirectorySerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
+    full_name      = serializers.SerializerMethodField()
+    slots          = serializers.SerializerMethodField()
+    sessions_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Coach
-        fields = ['id', 'first_name', 'last_name', 'full_name', 'biography', 'availability']
+        fields = [
+            'id', 'first_name', 'last_name', 'full_name',
+            'biography', 'specialty', 'rating', 'price', 'tags', 'avatar_url',
+            'availability', 'slots', 'sessions_count',
+        ]
 
     def get_full_name(self, obj):
         return f'{obj.first_name} {obj.last_name}'.strip()
+
+    def get_slots(self, obj):
+        """Convert flat availability list ('Mon 09:30') to dict {'Mon': ['09:30', ...]}."""
+        from collections import defaultdict
+        result = defaultdict(list)
+        for slot in (obj.availability or []):
+            parts = slot.split(' ', 1)
+            if len(parts) == 2:
+                result[parts[0]].append(parts[1])
+        return dict(result)
+
+    def get_sessions_count(self, obj):
+        return obj.booked_sessions.filter(status='accepted').count()
 
 
 

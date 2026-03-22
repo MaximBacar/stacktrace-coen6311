@@ -1,39 +1,76 @@
 import { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { stagger } from './components/animations'
-import { COACHES, INITIAL_SESSIONS } from './components/data'
+import { fetchCoaches, fetchMemberSessions, bookCoachingSession } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 import UpcomingSessions from './components/UpcomingSessions'
 import CoachSearch from './components/CoachSearch'
 import BookingSheet from './components/BookingSheet'
 
+function parseSlot(scheduled_slot) {
+  const parts = scheduled_slot?.split(' ', 2) ?? []
+  return { day: parts[0] ?? '', time: parts[1] ?? scheduled_slot ?? '' }
+}
+
 export default function CoachingPage() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const memberId = user?.id
+
   const [query,        setQuery]        = useState('')
-  const [sessions,     setSessions]     = useState(INITIAL_SESSIONS)
   const [bookingCoach, setBookingCoach] = useState(null)
   const [sheetOpen,    setSheetOpen]    = useState(false)
 
+  const { data: coaches = [] } = useQuery({
+    queryKey: ['coaches'],
+    queryFn: () => fetchCoaches().then(r => r.data),
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: rawSessions = [] } = useQuery({
+    queryKey: ['member-sessions', memberId],
+    queryFn: () => fetchMemberSessions(memberId).then(r => r.data),
+    enabled: Boolean(memberId),
+    refetchOnWindowFocus: false,
+  })
+
+  const sessions = useMemo(() =>
+    rawSessions
+      .filter(s => s.status === 'booked' || s.status === 'accepted')
+      .map(s => {
+        const { day, time } = parseSlot(s.scheduled_slot)
+        return {
+          id:        s.id,
+          coachName: s.coach_name,
+          specialty: s.coach_specialty,
+          avatar:    s.coach_avatar_url,
+          day,
+          time,
+          duration:  s.duration,
+        }
+      }),
+  [rawSessions])
+
+  const bookMutation = useMutation({
+    mutationFn: bookCoachingSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coaches'] })
+      queryClient.invalidateQueries({ queryKey: ['member-sessions', memberId] })
+    },
+  })
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
-    if (!q) return COACHES
-    return COACHES.filter(c =>
-      c.name.toLowerCase().includes(q) ||
+    if (!q) return coaches
+    return coaches.filter(c =>
+      c.full_name.toLowerCase().includes(q) ||
       c.specialty.toLowerCase().includes(q) ||
-      c.tags.some(t => t.toLowerCase().includes(q))
+      (c.tags ?? []).some(t => t.toLowerCase().includes(q))
     )
-  }, [query])
+  }, [coaches, query])
 
   function openBooking(coach) { setBookingCoach(coach); setSheetOpen(true) }
-
-  function handleBook({ coach, day, time, duration }) {
-    setSessions(prev => [...prev, {
-      id: Math.random().toString(36).slice(2),
-      coachId: coach.id,
-      coachName: coach.name,
-      specialty: coach.specialty,
-      day, time, duration,
-      avatar: coach.avatar,
-    }])
-  }
 
   return (
     <>
@@ -56,7 +93,8 @@ export default function CoachingPage() {
         coach={bookingCoach}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
-        onBook={handleBook}
+        memberId={memberId}
+        bookMutation={bookMutation}
       />
     </>
   )

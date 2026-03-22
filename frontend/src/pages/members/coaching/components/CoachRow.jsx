@@ -11,10 +11,10 @@ export default function CoachRow({ coach, onBook }) {
       className="flex items-start justify-between gap-4 py-5 px-1 group"
     >
       <div className="flex items-start gap-4">
-        <img src={coach.avatar} alt={coach.name} className="w-11 h-11 rounded-full object-cover shrink-0 mt-0.5" />
+        <img src={coach.avatar_url} alt={coach.full_name} className="w-11 h-11 rounded-full object-cover shrink-0 mt-0.5" />
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">{coach.name}</p>
+            <p className="text-sm font-medium">{coach.full_name}</p>
             <div className="flex items-center gap-0.5">
               <Star size={11} className="fill-foreground text-foreground" />
               <span className="text-xs">{coach.rating}</span>
@@ -22,7 +22,7 @@ export default function CoachRow({ coach, onBook }) {
           </div>
           <p className="text-xs text-muted-foreground">{coach.specialty}</p>
           <div className="flex flex-wrap gap-1 mt-1">
-            {coach.tags.map(t => (
+            {(coach.tags ?? []).map(t => (
               <span key={t} className="text-[11px] border rounded-full px-2 py-0.5 text-muted-foreground">{t}</span>
             ))}
           </div>
