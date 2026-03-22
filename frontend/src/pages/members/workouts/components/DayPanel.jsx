@@ -3,15 +3,10 @@ import { Plus, Trash2, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { spring, fadeUp, collapse } from './animations'
-import { makeExercise } from './helpers'
 import ExerciseRow from './ExerciseRow'
 
-export default function DayPanel({ day, onUpdateDay, onDeleteDay }) {
+export default function DayPanel({ day, onRenameDay, onDeleteDay, onAddExercise, onUpdateExercise, onDeleteExercise }) {
   const [open, setOpen] = useState(true)
-
-  function addExercise()     { onUpdateDay({ ...day, exercises: [...day.exercises, makeExercise()] }) }
-  function updateExercise(u) { onUpdateDay({ ...day, exercises: day.exercises.map(e => e.id === u.id ? u : e) }) }
-  function deleteExercise(id){ onUpdateDay({ ...day, exercises: day.exercises.filter(e => e.id !== id) }) }
 
   return (
     <motion.div layout className="rounded-xl border overflow-hidden">
@@ -21,9 +16,12 @@ export default function DayPanel({ day, onUpdateDay, onDeleteDay }) {
           <motion.span animate={{ rotate: open ? 0 : -90 }} transition={spring}>
             <ChevronDown size={15} strokeWidth={1.5} />
           </motion.span>
-          <Input value={day.label} onChange={e => onUpdateDay({ ...day, label: e.target.value })}
+          <Input
+            value={day.label}
+            onChange={e => onRenameDay(e.target.value)}
             onClick={e => e.stopPropagation()}
-            className="h-7 w-28 text-sm font-medium border-transparent bg-transparent px-1 focus:bg-background focus:border-border" />
+            className="h-7 w-28 text-sm font-medium border-transparent bg-transparent px-1 focus:bg-background focus:border-border"
+          />
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
@@ -54,14 +52,15 @@ export default function DayPanel({ day, onUpdateDay, onDeleteDay }) {
                   </div>
                   <AnimatePresence>
                     {day.exercises.map(ex => (
-                      <ExerciseRow key={ex.id} exercise={ex} onChange={updateExercise}
-                        onDelete={() => deleteExercise(ex.id)} />
+                      <ExerciseRow key={ex.id} exercise={ex}
+                        onChange={onUpdateExercise}
+                        onDelete={() => onDeleteExercise(ex.id)} />
                     ))}
                   </AnimatePresence>
                 </div>
               )}
               <div className="py-3">
-                <button onClick={addExercise}
+                <button onClick={onAddExercise}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors active:scale-[0.98]">
                   <Plus size={13} strokeWidth={2} /> Add exercise
                 </button>

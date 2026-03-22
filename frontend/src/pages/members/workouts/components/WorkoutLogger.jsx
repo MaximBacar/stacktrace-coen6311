@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Trophy, ClipboardList } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { spring, fadeUp, stagger } from './animations'
-import { uid, seedLogSets } from './helpers'
+import { seedLogSets } from './helpers'
+import { logWorkout } from '@/lib/api'
 import ExerciseLogger from './ExerciseLogger'
 
 export default function WorkoutLogger({ plans, onFinish }) {
@@ -35,19 +37,29 @@ export default function WorkoutLogger({ plans, onFinish }) {
     ? day.exercises.reduce((acc, ex) => acc + (logSets[ex.id] ?? []).length, 0)
     : 0
 
-  function handleFinish() {
+  const logMutation = useMutation({
+    mutationFn: ({ planId, dayId, sets }) => logWorkout(planId, dayId, { sets }),
+  })
+
+  async function handleFinish() {
+    const sets = []
+    day.exercises.forEach(ex => {
+      ;(logSets[ex.id] ?? []).filter(s => s.done).forEach(s => {
+        sets.push({
+          exercise_id: ex.id,
+          weight: parseFloat(s.weight) || 0,
+          ...(ex.repsType === 'reps'
+            ? { reps: parseInt(s.amount) || 0 }
+            : { duration: parseInt(s.amount) || 0 }
+          ),
+        })
+      })
+    })
+
+    await logMutation.mutateAsync({ planId, dayId: day.id, sets })
+
     setFinished(true)
-    const session = {
-      id: uid(),
-      date: new Date().toISOString(),
-      planName: plan.name,
-      dayLabel: day.label,
-      exercises: day.exercises.map(ex => ({
-        name: ex.name,
-        sets: (logSets[ex.id] ?? []).filter(s => s.done),
-      })),
-    }
-    onFinish(session)
+    onFinish()
   }
 
   if (!plan || plan.days.every(d => d.exercises.length === 0)) {
@@ -145,7 +157,7 @@ export default function WorkoutLogger({ plans, onFinish }) {
                 <Button
                   size="sm"
                   onClick={handleFinish}
-                  disabled={totalDone === 0}
+                  disabled={totalDone === 0 || logMutation.isPending}
                   className="gap-1.5 h-8 text-xs"
                 >
                   <Trophy size={13} strokeWidth={1.5} />
