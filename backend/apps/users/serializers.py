@@ -1,7 +1,6 @@
 from django.contrib.auth.hashers import make_password
-from django.db import transaction
 from rest_framework import serializers
-from .models import Member, Coach, Administrator, CoachingSession
+from .models import Member, Coach, Administrator
 
 
 class LoginSerializer(serializers.Serializer):
@@ -42,49 +41,34 @@ class CoachSerializer(BaseUserSerializer):
 
 
 class CoachDirectorySerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
+    full_name      = serializers.SerializerMethodField()
+    slots          = serializers.SerializerMethodField()
+    sessions_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Coach
-        fields = ['id', 'first_name', 'last_name', 'full_name', 'biography', 'availability']
+        fields = [
+            'id', 'first_name', 'last_name', 'full_name',
+            'biography', 'specialty', 'rating', 'price', 'tags', 'avatar_url',
+            'availability', 'slots', 'sessions_count',
+        ]
 
     def get_full_name(self, obj):
         return f'{obj.first_name} {obj.last_name}'.strip()
 
+    def get_slots(self, obj):
+        """Convert flat availability list ('Mon 09:30') to dict {'Mon': ['09:30', ...]}."""
+        from collections import defaultdict
+        result = defaultdict(list)
+        for slot in (obj.availability or []):
+            parts = slot.split(' ', 1)
+            if len(parts) == 2:
+                result[parts[0]].append(parts[1])
+        return dict(result)
 
-class CoachingSessionSerializer(serializers.ModelSerializer):
-    member_id = serializers.PrimaryKeyRelatedField(queryset=Member.objects.all(), source='member')
-    coach_id = serializers.PrimaryKeyRelatedField(queryset=Coach.objects.all(), source='coach')
-    coach_name = serializers.SerializerMethodField(read_only=True)
+    def get_sessions_count(self, obj):
+        return obj.booked_sessions.filter(status='accepted').count()
 
-    class Meta:
-        model = CoachingSession
-        fields = ['id', 'member_id', 'coach_id', 'coach_name', 'scheduled_slot', 'goals', 'status', 'rejection_reason', 'created_at']
-        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at']
-
-    def validate(self, attrs):
-        coach = attrs['coach']
-        scheduled_slot = attrs['scheduled_slot']
-
-        if scheduled_slot not in (coach.availability or []):
-            raise serializers.ValidationError({
-                'scheduled_slot': 'This time slot is no longer available for the selected coach.'
-            })
-
-        return attrs
-
-    @transaction.atomic
-    def create(self, validated_data):
-        coach = validated_data['coach']
-        scheduled_slot = validated_data['scheduled_slot']
-        availability = list(coach.availability or [])
-        availability.remove(scheduled_slot)
-        coach.availability = availability
-        coach.save(update_fields=['availability'])
-        return super().create(validated_data)
-
-    def get_coach_name(self, obj):
-        return f'{obj.coach.first_name} {obj.coach.last_name}'.strip()
 
 
 class AdminSerializer(BaseUserSerializer):

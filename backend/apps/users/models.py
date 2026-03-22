@@ -27,21 +27,15 @@ class Member(User):
 
 
 class Coach(User):
-    biography = models.TextField()
+    biography    = models.TextField()
+    specialty    = models.CharField(max_length=100, blank=True)
+    rating       = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    price        = models.IntegerField(default=0, help_text='Price per session in dollars')
+    tags         = models.JSONField(default=list)
+    avatar_url   = models.URLField(blank=True)
     availability = models.JSONField(default=list, blank=True)
 
     class Meta:
         db_table = 'coaches'
 
 
-class CoachingSession(models.Model):
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='coaching_sessions')
-    coach = models.ForeignKey(Coach, on_delete=models.CASCADE, related_name='booked_sessions')
-    scheduled_slot = models.CharField(max_length=120)
-    goals = models.TextField()
-    status = models.CharField(max_length=20, default='booked')
-    rejection_reason = models.TextField(blank=True, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'coaching_sessions'

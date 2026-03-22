@@ -48,9 +48,9 @@ export default api
 export const registerUser = (data) => authApi.post('/api/users/register/', data)
 export const loginUser    = (data) => authApi.post('/api/users/login/', data)
 export const fetchCoaches = () => api.get('/api/users/coaches/')
-export const bookCoachingSession = (data) => api.post('/api/users/coaching-sessions/', data)
-export const fetchMemberSessions = (memberId) => api.get(`/api/users/coaching-sessions/?member_id=${memberId}`)
-export const cancelCoachingSession = (sessionId, memberId) => api.delete(`/api/users/coaching-sessions/${sessionId}/?member_id=${memberId}`)
+export const bookCoachingSession   = (data)               => api.post('/api/coaching/sessions/', data)
+export const fetchMemberSessions   = (memberId)            => api.get(`/api/coaching/sessions/?member_id=${memberId}`)
+export const cancelCoachingSession = (sessionId, memberId) => api.delete(`/api/coaching/sessions/${sessionId}/?member_id=${memberId}`)
 
 // Workouts
 export const fetchWorkoutPlans      = ()                              => api.get('/api/workouts/').then(r => r.data)

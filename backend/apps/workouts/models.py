@@ -1,11 +1,18 @@
 from django.db import models
 
-from apps.users.models import Member
+from apps.users.models import Member, Coach
 
 class WorkoutPlan(models.Model):
     member = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name="workout_plans"
+    )
+    coach = models.ForeignKey(
+        Coach,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
         related_name="workout_plans"
     )
     name = models.CharField(max_length=255)

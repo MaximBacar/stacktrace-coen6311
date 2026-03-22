@@ -8,7 +8,7 @@ import DayPanel from './DayPanel'
 
 export default function PlanEditor({
   plan,
-  isActive, onSetActive,
+  isActive, onSetActive, showActive = true,
   isAddingDay,
   isSaving, isDirty, onSave,
   onRenamePlan,
@@ -28,10 +28,12 @@ export default function PlanEditor({
           className="text-xl font-semibold tracking-tight border-transparent bg-transparent px-0 h-auto focus:bg-background focus:border-border focus:px-3 w-72"
         />
         <div className="flex items-center gap-2">
-          <Button size="sm" variant={isActive ? 'default' : 'outline'} onClick={onSetActive} className="gap-1.5 h-8 text-xs">
-            {isActive && <Check size={12} strokeWidth={2.5} />}
-            {isActive ? 'Active plan' : 'Set as active'}
-          </Button>
+          {showActive && (
+            <Button size="sm" variant={isActive ? 'default' : 'outline'} onClick={onSetActive} className="gap-1.5 h-8 text-xs">
+              {isActive && <Check size={12} strokeWidth={2.5} />}
+              {isActive ? 'Active plan' : 'Set as active'}
+            </Button>
+          )}
           <Button size="sm" onClick={onSave} disabled={isSaving || !isDirty} className="gap-1.5 h-8 text-xs">
             <Save size={12} strokeWidth={2} />
             {isSaving ? 'Saving…' : 'Save'}

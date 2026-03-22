@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'apps.users',
-    'apps.workouts'
+    'apps.workouts',
+    'apps.coaching'
 ]
 
 MIDDLEWARE = [
