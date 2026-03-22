@@ -1,10 +1,12 @@
-import { createContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback, useEffect } from 'react'
+import { setTokenRefreshCallback } from '@/lib/api'
 
 export const AuthContext = createContext(null)
 
-function decodeToken(token) {
+function decodeUser(token) {
     try {
-        return JSON.parse(atob(token.split('.')[1]))
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        return { id: payload.user_id, role: payload.role }
     } catch {
         return null
     }
@@ -17,7 +19,7 @@ export function AuthProvider({ children }) {
         return access && refresh ? { access, refresh } : null
     })
 
-    const user = tokens ? decodeToken(tokens.access) : null
+    const user = tokens ? decodeUser(tokens.access) : null
 
     const login = useCallback((newTokens) => {
         localStorage.setItem('access_token',  newTokens.access)
@@ -36,8 +38,14 @@ export function AuthProvider({ children }) {
         setTokens((prev) => ({ ...prev, access: accessToken }))
     }, [])
 
+    // Keep React state in sync when api.js silently refreshes the token
+    useEffect(() => {
+        setTokenRefreshCallback(updateAccessToken)
+        return () => setTokenRefreshCallback(null)
+    }, [updateAccessToken])
+
     return (
-        <AuthContext.Provider value={{ user, tokens, login, logout, updateAccessToken, isAuthenticated: !!tokens }}>
+        <AuthContext.Provider value={{ user, tokens, login, logout, isAuthenticated: !!tokens }}>
             {children}
         </AuthContext.Provider>
     )
