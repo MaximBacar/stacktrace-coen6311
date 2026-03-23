@@ -65,3 +65,9 @@ export const updateWorkoutExercise  = (planId, dayId, exId, data)     => api.pat
 export const deleteWorkoutExercise  = (planId, dayId, exId)           => api.delete(`/api/workouts/${planId}/days/${dayId}/exercises/${exId}/`)
 export const logWorkout             = (planId, dayId, data)           => api.post(`/api/workouts/${planId}/days/${dayId}/logs/`, data).then(r => r.data)
 export const fetchWorkoutLogs       = ()                              => api.get('/api/workouts/logs/').then(r => r.data)
+
+// Chat
+export const fetchChats        = ()                => api.get('/api/chat/').then(r => r.data)
+export const getOrCreateChat   = (userId)          => api.post('/api/chat/', { user_id: userId }).then(r => r.data)
+export const fetchMessages     = (chatId, since)   => api.get(`/api/chat/${chatId}/messages/${since ? `?since=${since}` : ''}`).then(r => r.data)
+export const sendMessage       = (chatId, content) => api.post(`/api/chat/${chatId}/messages/`, { content }).then(r => r.data)
