@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.users',
     'apps.workouts',
-    'apps.coaching'
+    'apps.coaching',
+    'apps.chat',
 ]
 
 MIDDLEWARE = [

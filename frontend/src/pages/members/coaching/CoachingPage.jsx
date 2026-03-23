@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import UpcomingSessions from './components/UpcomingSessions'
 import CoachSearch from './components/CoachSearch'
 import BookingSheet from './components/BookingSheet'
+import ChatPanel from '@/components/chat/ChatPanel'
 
 function parseSlot(scheduled_slot) {
   const parts = scheduled_slot?.split(' ', 2) ?? []
@@ -21,6 +22,7 @@ export default function CoachingPage() {
   const [query,        setQuery]        = useState('')
   const [bookingCoach, setBookingCoach] = useState(null)
   const [sheetOpen,    setSheetOpen]    = useState(false)
+  const [activeChatId, setActiveChatId] = useState(null)
 
   const { data: coaches = [] } = useQuery({
     queryKey: ['coaches'],
@@ -72,22 +74,28 @@ export default function CoachingPage() {
 
   function openBooking(coach) { setBookingCoach(coach); setSheetOpen(true) }
 
-  return (
+return (
     <>
-      <motion.div
-        className="w-full flex flex-col gap-10 overflow-y-scroll px-6"
-        variants={stagger(0.1)}
-        initial="hidden"
-        animate="show"
-      >
-        <UpcomingSessions sessions={sessions} />
-        <CoachSearch
-          query={query}
-          onQueryChange={setQuery}
-          filtered={filtered}
-          onBook={openBooking}
-        />
-      </motion.div>
+      <div className="w-full h-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 px-6 overflow-hidden">
+        <motion.div
+          className="flex flex-col gap-10 overflow-y-auto"
+          variants={stagger(0.1)}
+          initial="hidden"
+          animate="show"
+        >
+          <UpcomingSessions sessions={sessions} />
+          <CoachSearch
+            query={query}
+            onQueryChange={setQuery}
+            filtered={filtered}
+            onBook={openBooking}
+          />
+        </motion.div>
+
+        <div className="h-full min-h-0 py-1">
+          <ChatPanel activeChatId={activeChatId} onChatChange={setActiveChatId} />
+        </div>
+      </div>
 
       <BookingSheet
         coach={bookingCoach}

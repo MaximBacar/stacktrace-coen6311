@@ -26,7 +26,7 @@ class JWTAuthMiddleware:
             token_str = auth_header.split(' ', 1)[1]
             try:
                 token = AccessToken(token_str)
-                request.user_id = token['user_id']
+                request.user_id = int(token['user_id'])
                 request.user_role = token.get('role') or _lookup_role(request.user_id)
             except (InvalidToken, TokenError):
                 pass
