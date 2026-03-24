@@ -1,37 +1,79 @@
-import { CalendarDays } from 'lucide-react'
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const HOURS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function CalendarPage() {
+  const [availability, setAvailability] = useState([]);
+  const [newSlot, setNewSlot] = useState("");
+
+  useEffect(() => {
+    fetchAvailability();
+  }, []);
+
+  const fetchAvailability = async () => {
+    try {
+      const res = await api.get("/coaching/availability/");
+      setAvailability(res.data.availability || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addSlot = () => {
+    if (!newSlot) return;
+    setAvailability([...availability, newSlot]);
+    setNewSlot("");
+  };
+
+  const removeSlot = (slot) => {
+    setAvailability(availability.filter((s) => s !== slot));
+  };
+
+  const saveAvailability = async () => {
+    try {
+      await api.put("/coaching/availability/update/", {
+        availability,
+      });
+      alert("Availability updated!");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving availability");
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-6 px-6 h-full min-h-0">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Calendar</h1>
-        <p className="text-sm text-muted-foreground mt-1">Your weekly schedule and upcoming sessions.</p>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">My Availability</h1>
+
+      <div className="flex gap-2 mb-4">
+        <input
+          type="datetime-local"
+          value={newSlot}
+          onChange={(e) => setNewSlot(e.target.value)}
+          className="border p-2"
+        />
+        <button onClick={addSlot} className="bg-blue-500 text-white px-4 py-2">
+          Add
+        </button>
       </div>
 
-      <div className="rounded-xl border overflow-auto flex-1">
-        <div className="grid min-w-[600px]" style={{ gridTemplateColumns: '64px repeat(7, 1fr)' }}>
-          <div className="border-b border-r bg-muted/30 h-10" />
-          {DAYS.map(d => (
-            <div key={d} className="border-b border-r last:border-r-0 h-10 flex items-center justify-center">
-              <span className="text-xs font-medium text-muted-foreground">{d}</span>
-            </div>
-          ))}
+      <ul className="mb-4">
+        {availability.map((slot, index) => (
+          <li key={index} className="flex justify-between border p-2 mb-2">
+            {slot}
+            <button onClick={() => removeSlot(slot)} className="text-red-500">
+              Remove
+            </button>
+          </li>
+        ))}
+      </ul>
 
-          {HOURS.map(hour => (
-            <>
-              <div key={`h-${hour}`} className="border-b border-r flex items-start pt-1 px-2 h-14">
-                <span className="text-[11px] text-muted-foreground">{hour}</span>
-              </div>
-              {DAYS.map(day => (
-                <div key={`${day}-${hour}`} className="border-b border-r last:border-r-0 h-14 hover:bg-muted/20 transition-colors" />
-              ))}
-            </>
-          ))}
-        </div>
-      </div>
+      <button
+        onClick={saveAvailability}
+        className="bg-green-500 text-white px-6 py-2"
+      >
+        Save Availability
+      </button>
     </div>
-  )
+  );
 }
