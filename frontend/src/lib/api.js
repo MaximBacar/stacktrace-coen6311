@@ -80,6 +80,21 @@ export const fetchConversationDetail = (conversationId)          => api.get(`/ap
 export const sendAssistantMessage    = (conversationId, message) => api.post(`/api/faq/conversations/${conversationId}/`, { message }).then(r => r.data)
 export const deleteConversation      = (conversationId)          => api.delete(`/api/faq/conversations/${conversationId}/`)
 
+// Gym & Policies
+export const fetchGyms                  = ()                       => api.get('/api/gyms/').then(r => r.data)
+export const fetchPolicyCategories      = (gymId)                  => api.get(`/api/gyms/${gymId}/policy-categories/`).then(r => r.data)
+export const createPolicyCategory       = (gymId, data)            => api.post(`/api/gyms/${gymId}/policy-categories/`, data).then(r => r.data)
+export const updatePolicyCategory       = (gymId, catId, data)     => api.patch(`/api/gyms/${gymId}/policy-categories/${catId}/`, data).then(r => r.data)
+export const deletePolicyCategory       = (gymId, catId)           => api.delete(`/api/gyms/${gymId}/policy-categories/${catId}/`)
+export const fetchPolicies              = (gymId)                  => api.get(`/api/gyms/${gymId}/policies/`).then(r => r.data)
+export const createPolicy               = (gymId, data)            => api.post(`/api/gyms/${gymId}/policies/`, data).then(r => r.data)
+export const updatePolicy               = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/policies/${policyId}/`, data).then(r => r.data)
+export const deletePolicy               = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/policies/${policyId}/`)
+export const fetchCancellationPolicies  = (gymId)                  => api.get(`/api/gyms/${gymId}/cancellation-policies/`).then(r => r.data)
+export const createCancellationPolicy   = (gymId, data)            => api.post(`/api/gyms/${gymId}/cancellation-policies/`, data).then(r => r.data)
+export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`, data).then(r => r.data)
+export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
+
 // Chat
 export const fetchChats        = ()                => api.get('/api/chat/').then(r => r.data)
 export const getOrCreateChat   = (userId)          => api.post('/api/chat/', { user_id: userId }).then(r => r.data)

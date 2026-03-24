@@ -5,7 +5,23 @@ from rest_framework import status
 from apps.users.decorators import role_required
 
 from .models import Gym, PolicyCategory, Policy, CancellationPolicy
-from .serializers import PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer
+from .serializers import GymSerializer, PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer
+
+
+# ── Gyms ──────────────────────────────────────────────────────────────────────
+
+class GymListView(APIView):
+    def get(self, request):
+        gyms = Gym.objects.all()
+        return Response(GymSerializer(gyms, many=True).data)
+
+    @role_required('admin')
+    def post(self, request):
+        serializer = GymSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

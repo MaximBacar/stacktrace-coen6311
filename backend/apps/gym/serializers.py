@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import PolicyCategory, Policy, CancellationPolicy
+from .models import Gym, PolicyCategory, Policy, CancellationPolicy
+
+
+class GymSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Gym
+        fields = ['id', 'name', 'address', 'phone', 'email', 'description']
 
 
 class PolicyCategorySerializer(serializers.ModelSerializer):

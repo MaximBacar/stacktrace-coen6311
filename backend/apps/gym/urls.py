@@ -1,12 +1,16 @@
 from django.urls import path
 
 from .views import (
+    GymListView,
     PolicyCategoryListView, PolicyCategoryDetailView,
     PolicyListView, PolicyDetailView,
     CancellationPolicyListView, CancellationPolicyDetailView,
 )
 
 urlpatterns = [
+    # Gyms
+    path('',                                                   GymListView.as_view()),
+
     # Policy categories
     path('<int:gym_id>/policy-categories/',                PolicyCategoryListView.as_view()),
     path('<int:gym_id>/policy-categories/<int:category_id>/', PolicyCategoryDetailView.as_view()),

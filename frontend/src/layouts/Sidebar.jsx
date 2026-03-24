@@ -15,15 +15,19 @@ export const CuSidebar = ({ navItems }) => {
       <Sidebar variant="inset" collapsible="icon" className="">
 
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-1 py-1">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#912338] text-sidebar-primary-foreground shrink-0">
-              <img src="favicons/safari-pinned-tab.svg" alt="CUFitness" className="size-4 brightness-0 invert" />
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="font-semibold truncate">CUFitness</span>
-              <span className="text-xs text-muted-foreground truncate">{roleLabel}</span>
-            </div>
-          </div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size='lg'>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#912338] text-sidebar-primary-foreground shrink-0">
+                  <img src="favicons/safari-pinned-tab.svg" alt="CUFitness" className="size-4 brightness-0 invert" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-semibold truncate">CUFitness</span>
+                  <span className="text-xs text-muted-foreground truncate">{roleLabel}</span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
 
         <SidebarContent>
