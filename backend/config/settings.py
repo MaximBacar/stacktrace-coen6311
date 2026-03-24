@@ -7,14 +7,18 @@ import  os
 from decouple import config
 
 DEBUG           : bool  = config("DEBUG",           default = True, cast=bool )
+PROD_DOMAIN     : str   = config("PROD_DOMAIN",  default = "")
+
 SECRET_KEY      : str   = config("SECRET_KEY",      default = "django-insecure-5ps16dtn0yg)-q1)gs*ocjft=6qoe=g*708q_3_!_gpzy4ew%n")
 POSTGRES_URL    : str   = config("POSTGRES_URL",    default = None)
 OPENAI_API_KEY  : str   = config("OPENAI_API_KEY",  default = "")
+
+
 LLM_MODEL       : str   = "gpt-4.1-nano"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*.vercel.app"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", PROD_DOMAIN]
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGIN_REGEXES = [
