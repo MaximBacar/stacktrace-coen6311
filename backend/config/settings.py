@@ -2,10 +2,8 @@ from    datetime    import timedelta
 from    pathlib     import Path
 
 import  dj_database_url
-import  dotenv
 import  os
 
-# dotenv.load_dotenv()
 from decouple import config
 
 DEBUG           : bool  = config("DEBUG",           default = True, cast=bool )
