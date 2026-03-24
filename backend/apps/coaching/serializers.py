@@ -11,12 +11,13 @@ class CoachingSessionSerializer(serializers.ModelSerializer):
     coach_name       = serializers.SerializerMethodField(read_only=True)
     coach_specialty  = serializers.CharField(source='coach.specialty', read_only=True)
     coach_avatar_url = serializers.URLField(source='coach.avatar_url', read_only=True)
+    member_name      = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CoachingSession
         fields = [
             'id', 'member_id', 'coach_id', 'coach_name', 'coach_specialty', 'coach_avatar_url',
-            'scheduled_slot', 'duration', 'goals', 'status', 'rejection_reason', 'created_at',
+            'member_name', 'scheduled_slot', 'duration', 'goals', 'status', 'rejection_reason', 'created_at',
         ]
         read_only_fields = ['id', 'status', 'rejection_reason', 'created_at']
 
@@ -43,3 +44,6 @@ class CoachingSessionSerializer(serializers.ModelSerializer):
 
     def get_coach_name(self, obj):
         return f'{obj.coach.first_name} {obj.coach.last_name}'.strip()
+
+    def get_member_name(self, obj):
+        return f'{obj.member.first_name} {obj.member.last_name}'.strip()

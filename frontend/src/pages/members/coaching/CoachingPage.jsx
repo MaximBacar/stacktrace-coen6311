@@ -8,6 +8,7 @@ import UpcomingSessions from './components/UpcomingSessions'
 import CoachSearch from './components/CoachSearch'
 import BookingSheet from './components/BookingSheet'
 import ChatPanel from '@/components/chat/ChatPanel'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 function parseSlot(scheduled_slot) {
   const parts = scheduled_slot?.split(' ', 2) ?? []
@@ -37,21 +38,30 @@ export default function CoachingPage() {
     refetchOnWindowFocus: false,
   })
 
-  const sessions = useMemo(() =>
-    rawSessions
-      .filter(s => s.status === 'booked' || s.status === 'accepted')
-      .map(s => {
-        const { day, time } = parseSlot(s.scheduled_slot)
-        return {
-          id:        s.id,
-          coachName: s.coach_name,
-          specialty: s.coach_specialty,
-          avatar:    s.coach_avatar_url,
-          day,
-          time,
-          duration:  s.duration,
-        }
-      }),
+  function mapSession(s) {
+    const { day, time } = parseSlot(s.scheduled_slot)
+    return {
+      id:             s.id,
+      coachName:      s.coach_name,
+      specialty:      s.coach_specialty,
+      avatar:         s.coach_avatar_url,
+      rejectionReason: s.rejection_reason ?? null,
+      day,
+      time,
+      duration:       s.duration,
+    }
+  }
+
+  const upcomingSessions = useMemo(() =>
+    rawSessions.filter(s => s.status === 'accepted').map(mapSession),
+  [rawSessions])
+
+  const pendingSessions = useMemo(() =>
+    rawSessions.filter(s => s.status === 'booked').map(mapSession),
+  [rawSessions])
+
+  const rejectedSessions = useMemo(() =>
+    rawSessions.filter(s => s.status === 'rejected').map(mapSession),
   [rawSessions])
 
   const bookMutation = useMutation({
@@ -76,34 +86,41 @@ export default function CoachingPage() {
 
 return (
     <>
-      <div className="w-full h-full grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 px-6 overflow-hidden">
+      <div className="w-full h-full min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 overflow-hidden">
         <motion.div
-          className="flex flex-col gap-10 overflow-y-auto"
+          className="h-full w-full min-h-0 flex flex-col gap-10"
           variants={stagger(0.1)}
           initial="hidden"
           animate="show"
         >
-          <UpcomingSessions sessions={sessions} />
+          <UpcomingSessions
+            upcoming={upcomingSessions}
+            pending={pendingSessions}
+            rejected={rejectedSessions}
+          />
+          
           <CoachSearch
             query={query}
             onQueryChange={setQuery}
             filtered={filtered}
             onBook={openBooking}
           />
+          
         </motion.div>
 
-        <div className="h-full min-h-0 py-1">
+        <div className="w-h-full min-h-0 py-1">
           <ChatPanel activeChatId={activeChatId} onChatChange={setActiveChatId} />
         </div>
       </div>
 
       <BookingSheet
-        coach={bookingCoach}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        memberId={memberId}
-        bookMutation={bookMutation}
-      />
+          coach={bookingCoach}
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          memberId={memberId}
+          bookMutation={bookMutation}
+        />
+      
     </>
   )
 }

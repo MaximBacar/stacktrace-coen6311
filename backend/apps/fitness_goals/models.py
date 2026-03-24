@@ -1,8 +1,9 @@
 from django.db import models
-from django.conf import settings
+
+from apps.users.models import Member, Coach
 
 class FitnessGoal(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='fitness_goals')
     goal_text = models.CharField(max_length=255)
     deadline = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)

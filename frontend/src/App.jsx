@@ -8,15 +8,17 @@ import RegistrationPage from './pages/auth/registration/RegistrationPage'
 import HomePage          from './pages/members/homepage/HomePage'
 import WorkoutsPage      from './pages/members/workouts/WorkoutsPage'
 import NutritionPage     from './pages/members/nutrition/NutritionPage'
+import ProfilePage       from './pages/members/settings/ProfilePage'
 import SettingsPage      from './pages/members/settings/SettingsPage'
 import CoachingPage      from './pages/members/coaching/CoachingPage'
+import FaqPage           from './pages/members/faq/FaqPage'
 import MemberLayout      from './layouts/MemberLayout'
 
 import CoachLayout          from './layouts/CoachLayout'
 import DashboardPage        from './pages/coaches/DashboardPage'
 import RequestsPage         from './pages/coaches/RequestsPage'
 import ClientsPage          from './pages/coaches/ClientsPage'
-import CalendarPage         from './pages/coaches/CalendarPage'
+import CalendarPage         from './pages/coaches/calendar/CalendarPage'
 import CoachSettingsPage    from './pages/coaches/CoachSettingsPage'
 import CoachWorkoutsPage    from './pages/coaches/CoachWorkoutsPage'
 
@@ -35,11 +37,13 @@ export function App() {
 
               <Route element={<RoleRoute role="member" />}>
                 <Route element={<MemberLayout />}>
-                  <Route index           element={<HomePage />}     />
-                  <Route path="/workouts"  element={<WorkoutsPage />}  />
-                  <Route path="/coaching"  element={<CoachingPage />}  />
-                  <Route path="/nutrition" element={<NutritionPage />} />
-                  <Route path="/settings"  element={<SettingsPage />}  />
+                  <Route index              element={<HomePage />}     />
+                  <Route path="/workouts"   element={<WorkoutsPage />}  />
+                  <Route path="/coaching"   element={<CoachingPage />}  />
+                  <Route path="/nutrition"  element={<NutritionPage />} />
+                  <Route path="/faq"        element={<FaqPage />}       />
+                  <Route path="/profile"    element={<ProfilePage />}   />
+                  <Route path="/settings"   element={<SettingsPage />}  />
                 </Route>
               </Route>
 

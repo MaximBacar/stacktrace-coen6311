@@ -64,7 +64,9 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         refresh = RefreshToken.for_user(user)
-        refresh['role'] = _get_role(user.pk)
+        refresh['role']         = _get_role(user.pk)
+        refresh['email']        = user.email
+        refresh['full_name']    = f'{user.first_name} {user.last_name}'.strip()
 
         return Response({
             'access': str(refresh.access_token),
@@ -81,7 +83,9 @@ class TokenRefreshView(APIView):
         try:
             refresh = RefreshToken(refresh_token)
             access = refresh.access_token
-            access['role'] = refresh.get('role')
+            access['role']      = refresh.get('role')
+            access['email']     = refresh.get('email')
+            access['full_name'] = refresh.get('full_name')
             return Response({'access': str(access)}, status=status.HTTP_200_OK)
         except (InvalidToken, TokenError):
             return Response({'error': 'Invalid or expired refresh token.'}, status=status.HTTP_401_UNAUTHORIZED)

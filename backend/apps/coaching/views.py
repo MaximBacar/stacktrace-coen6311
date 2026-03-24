@@ -5,6 +5,8 @@ from rest_framework import status
 from .models import CoachingSession
 from .serializers import CoachingSessionSerializer
 
+from apps.users.models import Coach
+from apps.users.decorators import role_required
 
 class CoachingSessionBookingView(APIView):
     def get(self, request):
@@ -55,32 +57,39 @@ class CoachingSessionDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# === SC-43: Coach Availability Endpoints ===
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from apps.users.models import Coach
+class CoachAvailabilityView(APIView):
+    @role_required('coach')
+    def get(self, request):
+        try:
+            coach = Coach.objects.get(id=request.user_id)
+        except Coach.DoesNotExist:
+            return Response({'error': 'Coach not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'availability': coach.availability or []})
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_my_availability(request):
-    try:
-        coach = Coach.objects.get(user=request.user)
-        return Response({"availability": coach.availability or []}, status=status.HTTP_200_OK)
-    except Coach.DoesNotExist:
-        return Response({"detail": "Coach not found"}, status=status.HTTP_404_NOT_FOUND)
+    @role_required('coach')
+    def put(self, request):
+        try:
+            coach = Coach.objects.get(id=request.user_id)
+        except Coach.DoesNotExist:
+            return Response({'error': 'Coach not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def update_my_availability(request):
-    try:
-        coach = Coach.objects.get(user=request.user)
-        availability = request.data.get("availability", [])
+        availability = request.data.get('availability', [])
         if not isinstance(availability, list):
-            return Response({"detail": "Availability must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Availability must be a list.'}, status=status.HTTP_400_BAD_REQUEST)
+
         coach.availability = availability
-        coach.save()
-        return Response({"availability": coach.availability}, status=status.HTTP_200_OK)
-    except Coach.DoesNotExist:
-        return Response({"detail": "Coach not found"}, status=status.HTTP_404_NOT_FOUND)
+        coach.save(update_fields=['availability'])
+        return Response({'availability': coach.availability})
+
+
+class CoachScheduleView(APIView):
+    @role_required('coach')
+    def get(self, request):
+        sessions = (
+            CoachingSession.objects
+            .filter(coach_id=request.user_id)
+            .select_related('member')
+            .exclude(status__in=['canceled', 'rejected'])
+            .order_by('scheduled_slot')
+        )
+        return Response(CoachingSessionSerializer(sessions, many=True).data)
