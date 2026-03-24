@@ -1,5 +1,6 @@
+import { useContext } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthContext, AuthProvider } from './context/AuthContext'
 import { PublicRoute, ProtectedRoute, RoleRoute } from './components/ProtectedRoute'
 
 import LoginPage        from './pages/auth/LoginPage'
@@ -14,13 +15,23 @@ import CoachingPage      from './pages/members/coaching/CoachingPage'
 import FaqPage           from './pages/members/faq/FaqPage'
 import MemberLayout      from './layouts/MemberLayout'
 
-import CoachLayout          from './layouts/CoachLayout'
-import DashboardPage        from './pages/coaches/DashboardPage'
-import RequestsPage         from './pages/coaches/RequestsPage'
-import ClientsPage          from './pages/coaches/ClientsPage'
-import CalendarPage         from './pages/coaches/calendar/CalendarPage'
-import CoachSettingsPage    from './pages/coaches/CoachSettingsPage'
-import CoachWorkoutsPage    from './pages/coaches/CoachWorkoutsPage'
+import CoachLayout       from './layouts/CoachLayout'
+import DashboardPage     from './pages/coaches/DashboardPage'
+import RequestsPage      from './pages/coaches/RequestsPage'
+import ClientsPage       from './pages/coaches/ClientsPage'
+import CalendarPage      from './pages/coaches/calendar/CalendarPage'
+import CoachSettingsPage from './pages/coaches/CoachSettingsPage'
+import CoachWorkoutsPage from './pages/coaches/CoachWorkoutsPage'
+
+// Role-aware layout: picks the right sidebar nav based on role
+function AppLayout() {
+  const { user } = useContext(AuthContext)
+  return user?.role === 'coach' ? <CoachLayout /> : <MemberLayout />
+}
+
+function RoleIndex()    { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <DashboardPage />     : <HomePage />     }
+function RoleWorkouts() { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachWorkoutsPage /> : <WorkoutsPage />  }
+function RoleSettings() { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachSettingsPage /> : <SettingsPage />  }
 
 export function App() {
   return (
@@ -34,30 +45,29 @@ export function App() {
             </Route>
 
             <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
 
-              <Route element={<RoleRoute role="member" />}>
-                <Route element={<MemberLayout />}>
-                  <Route index              element={<HomePage />}     />
-                  <Route path="/workouts"   element={<WorkoutsPage />}  />
-                  <Route path="/coaching"   element={<CoachingPage />}  />
-                  <Route path="/nutrition"  element={<NutritionPage />} />
-                  <Route path="/faq"        element={<FaqPage />}       />
-                  <Route path="/profile"    element={<ProfilePage />}   />
-                  <Route path="/settings"   element={<SettingsPage />}  />
+                {/* Shared paths — role-aware, no guards needed */}
+                <Route index            element={<RoleIndex />}    />
+                <Route path="/workouts" element={<RoleWorkouts />} />
+                <Route path="/settings" element={<RoleSettings />} />
+
+                {/* Member-only paths — coaches get redirected to role home */}
+                <Route element={<RoleRoute role="member" />}>
+                  <Route path="/coaching"  element={<CoachingPage />}  />
+                  <Route path="/nutrition" element={<NutritionPage />} />
+                  <Route path="/faq"       element={<FaqPage />}       />
+                  <Route path="/profile"   element={<ProfilePage />}   />
                 </Route>
-              </Route>
 
-              <Route element={<RoleRoute role="coach" />}>
-                <Route element={<CoachLayout />}>
-                  <Route path="/dashboard"       element={<DashboardPage />}     />
-                  <Route path="/requests"        element={<RequestsPage />}      />
-                  <Route path="/clients"         element={<ClientsPage />}       />
-                  <Route path="/calendar"        element={<CalendarPage />}      />
-                  <Route path="/coach/workouts"  element={<CoachWorkoutsPage />} />
-                  <Route path="/settings"        element={<CoachSettingsPage />} />
+                {/* Coach-only paths — members get redirected to role home */}
+                <Route element={<RoleRoute role="coach" />}>
+                  <Route path="/requests" element={<RequestsPage />} />
+                  <Route path="/clients"  element={<ClientsPage />}  />
+                  <Route path="/calendar" element={<CalendarPage />} />
                 </Route>
-              </Route>
 
+              </Route>
             </Route>
           </Routes>
         </AuthProvider>
