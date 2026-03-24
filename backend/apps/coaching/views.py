@@ -53,3 +53,34 @@ class CoachingSessionDetailView(APIView):
         session.save(update_fields=['status'])
         serializer = CoachingSessionSerializer(session)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# === SC-43: Coach Availability Endpoints ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from apps.users.models import Coach
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_availability(request):
+    try:
+        coach = Coach.objects.get(user=request.user)
+        return Response({"availability": coach.availability or []}, status=status.HTTP_200_OK)
+    except Coach.DoesNotExist:
+        return Response({"detail": "Coach not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_my_availability(request):
+    try:
+        coach = Coach.objects.get(user=request.user)
+        availability = request.data.get("availability", [])
+        if not isinstance(availability, list):
+            return Response({"detail": "Availability must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+        coach.availability = availability
+        coach.save()
+        return Response({"availability": coach.availability}, status=status.HTTP_200_OK)
+    except Coach.DoesNotExist:
+        return Response({"detail": "Coach not found"}, status=status.HTTP_404_NOT_FOUND)
