@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/coaching/',   include('apps.coaching.urls')),
     path('api/chat/',       include('apps.chat.urls')),
     path('api/faq/',        include('apps.assistant.urls')),
+    path('api/gyms/',       include('apps.gym.urls')),
 ]
