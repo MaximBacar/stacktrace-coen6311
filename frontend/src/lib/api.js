@@ -66,6 +66,18 @@ export const deleteWorkoutExercise  = (planId, dayId, exId)           => api.del
 export const logWorkout             = (planId, dayId, data)           => api.post(`/api/workouts/${planId}/days/${dayId}/logs/`, data).then(r => r.data)
 export const fetchWorkoutLogs       = ()                              => api.get('/api/workouts/logs/').then(r => r.data)
 
+// Availability
+export const fetchAvailability  = ()           => api.get('/api/coaching/availability/').then(r => r.data.availability)
+export const saveAvailability   = (slots)      => api.put('/api/coaching/availability/', { availability: slots }).then(r => r.data)
+export const fetchCoachSessions = () => api.get('/api/coaching/schedule/').then(r => r.data)
+
+// Assistant
+export const fetchConversations      = ()                        => api.get('/api/faq/conversations/').then(r => r.data)
+export const createConversation      = (message)                 => api.post('/api/faq/conversations/', { message }).then(r => r.data)
+export const fetchConversationDetail = (conversationId)          => api.get(`/api/faq/conversations/${conversationId}/`).then(r => r.data)
+export const sendAssistantMessage    = (conversationId, message) => api.post(`/api/faq/conversations/${conversationId}/`, { message }).then(r => r.data)
+export const deleteConversation      = (conversationId)          => api.delete(`/api/faq/conversations/${conversationId}/`)
+
 // Chat
 export const fetchChats        = ()                => api.get('/api/chat/').then(r => r.data)
 export const getOrCreateChat   = (userId)          => api.post('/api/chat/', { user_id: userId }).then(r => r.data)

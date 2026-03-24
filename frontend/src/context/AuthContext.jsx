@@ -6,7 +6,7 @@ export const AuthContext = createContext(null)
 function decodeUser(token) {
     try {
         const payload = JSON.parse(atob(token.split('.')[1]))
-        return { id: Number(payload.user_id), role: payload.role }
+        return { id: Number(payload.user_id), role: payload.role, email: payload.email, full_name: payload.full_name }
     } catch {
         return null
     }

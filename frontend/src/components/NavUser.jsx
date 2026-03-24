@@ -16,7 +16,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
 
-  const name  = user?.username ?? user?.email ?? 'User'
+  const name  = user?.full_name ?? user?.email ?? 'User'
   const email = user?.email ?? ''
   const avatar = user?.avatar ?? ''
 

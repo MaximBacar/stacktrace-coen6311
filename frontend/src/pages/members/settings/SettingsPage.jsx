@@ -1,40 +1,23 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AuthContext } from '@/context/AuthContext'
 import { spring, fadeUp, stagger } from './components/animations'
 import PhotoSection from './components/PhotoSection'
 import PersonalInfoSection from './components/PersonalInfoSection'
-import BodyMetricsSection from './components/BodyMetricsSection'
-import DietarySection from './components/DietarySection'
-import FitnessGoalsSection from './components/FitnessGoalsSection'
 
 export default function SettingsPage() {
+  const { logout } = useContext(AuthContext)
+  const navigate   = useNavigate()
   const [saved, setSaved] = useState(false)
 
-  // personal info
   const [firstName, setFirstName] = useState('')
   const [lastName,  setLastName]  = useState('')
   const [email,     setEmail]     = useState('')
   const [dob,       setDob]       = useState('')
   const [gender,    setGender]    = useState('')
-
-  // body metrics
-  const [heightUnit, setHeightUnit] = useState('cm')
-  const [heightCm,   setHeightCm]   = useState('')
-  const [heightFt,   setHeightFt]   = useState('')
-  const [heightIn,   setHeightIn]   = useState('')
-  const [weightUnit, setWeightUnit] = useState('kg')
-  const [weight,     setWeight]     = useState('')
-  const [activity,   setActivity]   = useState('')
-
-  // dietary & goals
-  const [dietary, setDietary] = useState([])
-  const [goals,   setGoals]   = useState([])
-
-  function toggleSet(setter, value) {
-    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])
-  }
 
   function handleSave(e) {
     e.preventDefault()
@@ -42,13 +25,18 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2500)
   }
 
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   const initials = ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase() || '?'
 
   return (
     <motion.div className="w-full h-full min-h-0" variants={stagger} initial="hidden" animate="show">
       <motion.div variants={fadeUp} className="mb-8 px-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your personal information and preferences.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage your account details and photo.</p>
       </motion.div>
 
       <form onSubmit={handleSave} className="h-full min-h-0 w-full flex flex-col">
@@ -63,25 +51,14 @@ export default function SettingsPage() {
             gender={gender}       setGender={setGender}
           />
 
-          <BodyMetricsSection
-            heightUnit={heightUnit} setHeightUnit={setHeightUnit}
-            heightCm={heightCm}     setHeightCm={setHeightCm}
-            heightFt={heightFt}     setHeightFt={setHeightFt}
-            heightIn={heightIn}     setHeightIn={setHeightIn}
-            weightUnit={weightUnit} setWeightUnit={setWeightUnit}
-            weight={weight}         setWeight={setWeight}
-            activity={activity}     setActivity={setActivity}
-          />
-
-          <DietarySection
-            dietary={dietary}
-            toggle={value => toggleSet(setDietary, value)}
-          />
-
-          <FitnessGoalsSection
-            goals={goals}
-            toggle={value => toggleSet(setGoals, value)}
-          />
+          <div className="py-8">
+            <h2 className="text-sm font-medium mb-1">Danger zone</h2>
+            <p className="text-xs text-muted-foreground mb-4">Log out of your account on this device.</p>
+            <Button type="button" variant="outline" className="gap-2 text-destructive border-destructive/40 hover:bg-destructive/5" onClick={handleLogout}>
+              <LogOut size={14} strokeWidth={2} />
+              Log out
+            </Button>
+          </div>
         </div>
 
         <motion.div

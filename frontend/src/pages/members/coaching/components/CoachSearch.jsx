@@ -3,33 +3,35 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { spring, fadeUp } from './animations'
 import CoachRow from './CoachRow'
-
+import { ScrollArea } from '@/components/ui/scroll-area'
 export default function CoachSearch({ query, onQueryChange, filtered, onBook }) {
   return (
-    <motion.section variants={fadeUp} className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium">Find a coach</h2>
-        <motion.span
-          key={filtered.length}
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={spring}
-          className="text-xs text-muted-foreground"
-        >
-          {filtered.length} available
-        </motion.span>
-      </div>
+    <motion.section variants={fadeUp} className="h-full min-h-0 flex flex-col gap-4">
+      <div className='flex flex-col px-6 gap-4'>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium">Find a coach</h2>
+          <motion.span
+            key={filtered.length}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={spring}
+            className="text-xs text-muted-foreground"
+          >
+            {filtered.length} available
+          </motion.span>
+        </div>
 
-      <div className="relative">
-        <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search by name, specialty, or skill…"
-          value={query}
-          onChange={e => onQueryChange(e.target.value)}
-          className="pl-9"
-        />
+        <div className="relative">
+          <Search size={15} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, specialty, or skill…"
+            value={query}
+            onChange={e => onQueryChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
-
+      <ScrollArea className="w-full h-full min-h-0 px-6">
       <div className="rounded-xl border overflow-hidden divide-y">
         <AnimatePresence mode="popLayout">
           {filtered.length === 0 ? (
@@ -51,6 +53,7 @@ export default function CoachSearch({ query, onQueryChange, filtered, onBook }) 
           )}
         </AnimatePresence>
       </div>
+      </ScrollArea>
     </motion.section>
   )
 }
