@@ -2,8 +2,14 @@ import { Sidebar,SidebarContent,SidebarFooter,SidebarGroup,SidebarGroupContent,S
 import { NavUser } from '@/components/NavUser'
 import { NavLink, Outlet } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
+
+const ROLE_LABELS = { member: 'Member', coach: 'Coach', admin: 'Administrator' }
 
 export const CuSidebar = ({ navItems }) => {
+  const { user } = useAuth()
+  const roleLabel = ROLE_LABELS[user?.role] ?? ''
+
   return (
     <SidebarProvider className="w-full h-full min-h-0">
       <Sidebar variant="inset" collapsible="icon" className="">
@@ -15,7 +21,7 @@ export const CuSidebar = ({ navItems }) => {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-semibold truncate">CUFitness</span>
-              <span className="text-xs text-muted-foreground truncate">Concordia University</span>
+              <span className="text-xs text-muted-foreground truncate">{roleLabel}</span>
             </div>
           </div>
         </SidebarHeader>

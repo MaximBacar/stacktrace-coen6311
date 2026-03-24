@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Save } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { fetchAvailability, saveAvailability } from '@/lib/api'
+import { fadeUp } from '../../animations'
 import WeekGrid from './WeekGrid'
 import { slotKey } from './constants'
 
@@ -72,7 +74,7 @@ export default function AvailabilityTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full min-h-0">
+    <motion.div className="flex flex-col gap-4 h-full min-h-0" variants={fadeUp} initial="hidden" animate="show">
       <div className="flex items-center justify-between shrink-0">
         <p className="text-sm text-muted-foreground">
           Click or drag cells to set your weekly recurring availability.
@@ -94,6 +96,6 @@ export default function AvailabilityTab() {
         onMouseEnter={handleMouseEnter}
         onMouseUp={() => setIsDragging(false)}
       />
-    </div>
+    </motion.div>
   )
 }

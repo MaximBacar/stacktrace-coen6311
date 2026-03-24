@@ -3,8 +3,8 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { AuthContext } from '@/context/AuthContext'
 
 const ROLE_HOME = {
-  member: '/workouts',
-  coach:  '/dashboard',
+  member: '/',
+  coach:  '/',
   admin:  '/',
 }
 
