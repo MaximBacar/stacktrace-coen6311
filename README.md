@@ -35,21 +35,34 @@ Concordia fitness planning app.
 ### Prerequisites
 
 | Tool | Version |
-|------|------|
+|------|---------|
 | Python | 3.14+ |
 | Node.js | 22.16+ |
 
-
-### 1. Cloning repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/MaximBacar/stacktrace-coen6311.git
+cd stacktrace-coen6311
 ```
 
-### 2. Running backend
+### 2. Environment variables
+
+Create the file `backend/.env` with the following content:
+
+```
+OPENAI_API_KEY=sk-proj-...
+```
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | Your OpenAI API key, used by the FAQ assistant. Get one at [platform.openai.com](https://platform.openai.com/api-keys). |
+
+> `.env` is gitignored and must be created manually on each machine.
+
+### 3. Backend setup
 
 ```bash
-# Navigate to the backend directory
 cd backend
 
 # Create and activate a virtual environment
@@ -59,17 +72,16 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run migrations
+# Apply database migrations
 python manage.py migrate
 
-# Start the server
+# Start the development server
 python manage.py runserver
 ```
 
-### 3. Running frontend
+### 4. Frontend setup
 
 ```bash
-# Navigate to the frontend directory
 cd frontend
 
 # Install dependencies

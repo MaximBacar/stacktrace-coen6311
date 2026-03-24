@@ -1,22 +1,19 @@
 from    datetime    import timedelta
+from    decouple    import config
 from    pathlib     import Path
 
 import  dj_database_url
-import  os
 
-from decouple import config
-
-DEBUG           : bool  = config("DEBUG",           default = True, cast=bool )
-PROD_DOMAIN     : str   = config("PROD_DOMAIN",  default = "")
+BASE_DIR    : str = Path(__file__).resolve().parent.parent
+DEBUG       : bool  = config("DEBUG",       default = True, cast=bool )
+PROD_DOMAIN : str   = config("PROD_DOMAIN", default = "")
 
 SECRET_KEY      : str   = config("SECRET_KEY",      default = "django-insecure-5ps16dtn0yg)-q1)gs*ocjft=6qoe=g*708q_3_!_gpzy4ew%n")
-POSTGRES_URL    : str   = config("POSTGRES_URL",    default = None)
+POSTGRES_URL    : str   = config("POSTGRES_URL",    default = f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 OPENAI_API_KEY  : str   = config("OPENAI_API_KEY",  default = "")
 
 
 LLM_MODEL       : str   = "gpt-4.1-nano"
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", PROD_DOMAIN]
 
@@ -37,12 +34,11 @@ SIMPLE_JWT = {
 # Uses PostgreSQL if provided, otherwise uses sqlite
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("POSTGRES_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        POSTGRES_URL,
         conn_max_age=600,
-        ssl_require=bool(os.getenv("POSTGRES_URL")),
+        ssl_require='sslmode=require' in POSTGRES_URL,
     )
 }
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,6 +56,7 @@ INSTALLED_APPS = [
     'apps.chat',
     'apps.assistant',
     'apps.fitness_goals',
+    'apps.gym',
 ]
 
 MIDDLEWARE = [
@@ -117,12 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
+TIME_ZONE   = 'UTC'
+USE_I18N    = True
+USE_TZ      = True
 
 STATIC_URL = 'static/'
 

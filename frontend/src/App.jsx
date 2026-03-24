@@ -23,15 +23,37 @@ import CalendarPage      from './pages/coaches/calendar/CalendarPage'
 import CoachSettingsPage from './pages/coaches/CoachSettingsPage'
 import CoachWorkoutsPage from './pages/coaches/CoachWorkoutsPage'
 
+import AdminLayout          from './layouts/AdminLayout'
+import AdminDashboardPage   from './pages/admins/DashboardPage'
+import PoliciesPage         from './pages/admins/PoliciesPage'
+import EquipmentPage        from './pages/admins/EquipmentPage'
+import AdminMembersPage     from './pages/admins/MembersPage'
+import StaffPage            from './pages/admins/StaffPage'
+import AnalyticsPage        from './pages/admins/AnalyticsPage'
+import GymPage              from './pages/admins/GymPage'
+import AdminSettingsPage    from './pages/admins/AdminSettingsPage'
+
 // Role-aware layout: picks the right sidebar nav based on role
 function AppLayout() {
   const { user } = useContext(AuthContext)
-  return user?.role === 'coach' ? <CoachLayout /> : <MemberLayout />
+  if (user?.role === 'admin')  return <AdminLayout />
+  if (user?.role === 'coach')  return <CoachLayout />
+  return <MemberLayout />
 }
 
-function RoleIndex()    { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <DashboardPage />     : <HomePage />     }
+function RoleIndex()    {
+  const { user } = useContext(AuthContext)
+  if (user?.role === 'admin') return <AdminDashboardPage />
+  if (user?.role === 'coach') return <DashboardPage />
+  return <HomePage />
+}
 function RoleWorkouts() { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachWorkoutsPage /> : <WorkoutsPage />  }
-function RoleSettings() { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachSettingsPage /> : <SettingsPage />  }
+function RoleSettings() {
+  const { user } = useContext(AuthContext)
+  if (user?.role === 'admin') return <AdminSettingsPage />
+  if (user?.role === 'coach') return <CoachSettingsPage />
+  return <SettingsPage />
+}
 
 export function App() {
   return (
@@ -60,11 +82,21 @@ export function App() {
                   <Route path="/profile"   element={<ProfilePage />}   />
                 </Route>
 
-                {/* Coach-only paths — members get redirected to role home */}
+                {/* Coach-only paths — members/admins get redirected to role home */}
                 <Route element={<RoleRoute role="coach" />}>
                   <Route path="/requests" element={<RequestsPage />} />
                   <Route path="/clients"  element={<ClientsPage />}  />
                   <Route path="/calendar" element={<CalendarPage />} />
+                </Route>
+
+                {/* Admin-only paths */}
+                <Route element={<RoleRoute role="admin" />}>
+                  <Route path="/policies"  element={<PoliciesPage />}      />
+                  <Route path="/equipment" element={<EquipmentPage />}     />
+                  <Route path="/members"   element={<AdminMembersPage />}  />
+                  <Route path="/staff"     element={<StaffPage />}         />
+                  <Route path="/analytics" element={<AnalyticsPage />}     />
+                  <Route path="/gym"       element={<GymPage />}           />
                 </Route>
 
               </Route>
