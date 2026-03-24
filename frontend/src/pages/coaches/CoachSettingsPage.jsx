@@ -1,16 +1,18 @@
 import { useAuth } from '@/hooks/useAuth'
+import { motion } from 'framer-motion'
+import { fadeUp, stagger } from './animations'
 
 export default function CoachSettingsPage() {
   const { user } = useAuth()
 
   return (
-    <div className="flex flex-col gap-8 px-6 max-w-xl">
-      <div>
+    <motion.div className="flex flex-col gap-8 px-6 max-w-xl" variants={stagger()} initial="hidden" animate="show">
+      <motion.div variants={fadeUp}>
         <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage your coach profile and preferences.</p>
-      </div>
+      </motion.div>
 
-      <div className="rounded-xl border divide-y">
+      <motion.div variants={fadeUp} className="rounded-xl border divide-y">
         <div className="px-5 py-4">
           <p className="text-xs font-medium text-muted-foreground mb-3">Account</p>
           <div className="flex flex-col gap-2 text-sm">
@@ -34,7 +36,7 @@ export default function CoachSettingsPage() {
           <p className="text-xs font-medium text-muted-foreground mb-2">Availability</p>
           <p className="text-sm text-muted-foreground">Manage your open time slots here.</p>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

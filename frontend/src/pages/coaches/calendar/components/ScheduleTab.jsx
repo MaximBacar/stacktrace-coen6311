@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { fetchCoachSessions } from '@/lib/api'
+import { fadeUp } from '../../animations'
 import WeekGrid from './WeekGrid'
 import { slotKey } from './constants'
 
@@ -47,7 +49,7 @@ export default function ScheduleTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4 h-full min-h-0">
+    <motion.div className="flex flex-col gap-4 h-full min-h-0" variants={fadeUp} initial="hidden" animate="show">
       <div className="flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <div className="w-3 h-3 rounded-sm border border-dashed border-amber-500 bg-amber-500/15" />
@@ -60,6 +62,6 @@ export default function ScheduleTab() {
       </div>
 
       <WeekGrid renderCell={renderCell} />
-    </div>
+    </motion.div>
   )
 }
