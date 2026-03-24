@@ -1,9 +1,11 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: 'http://localhost:8000' })
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
+const api = axios.create({ baseURL: BASE_URL })
 
 // Separate instance for refresh calls (no interceptors — avoids infinite loops)
-const authApi = axios.create({ baseURL: 'http://localhost:8000' })
+const authApi = axios.create({ baseURL: BASE_URL })
 
 // AuthContext registers this so React state stays in sync when a silent refresh happens
 let onTokenRefreshed = null

@@ -1,31 +1,27 @@
-import os
+from rest_framework.response    import Response
+from rest_framework.views       import APIView
+from rest_framework             import status
+from django.conf                import settings
 
-import dotenv
-from openai import OpenAI
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from apps.users.decorators  import role_required
+from apps.users.models      import Member
 
-from apps.users.decorators import role_required
-from apps.users.models import Member
+from .models    import AssistantConversation, AssistantMessage
+from openai     import OpenAI
 
-from .models import AssistantConversation, AssistantMessage
 
-dotenv.load_dotenv()
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client : OpenAI = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-MODEL = "gpt-4.1-nano-2025-04-14"
 
-SYSTEM_PROMPT = (
+SYSTEM_PROMPT : str = (
     "You are a helpful fitness club assistant. "
     "Answer questions about workouts, nutrition, scheduling, and gym policies. "
     "Be concise and friendly."
 )
 
-
 def _generate_title(first_question: str) -> str:
     response = client.chat.completions.create(
-        model=MODEL,
+        model=settings.LLM_MODEL,
         messages=[
             {"role": "user", "content": (
                 f"Generate a short title (5 words max, no quotes) for a conversation "
@@ -44,7 +40,7 @@ def _ask_assistant(question: str, history: list[dict]) -> str:
         messages.append({"role": role, "content": msg["content"]})
     messages.append({"role": "user", "content": question})
 
-    response = client.chat.completions.create(model=MODEL, messages=messages)
+    response = client.chat.completions.create(model=settings.LLM_MODEL, messages=messages)
     return response.choices[0].message.content
 
 
@@ -112,6 +108,7 @@ class ConversationMessageView(APIView):
         AssistantMessage.objects.create(conversation=conversation, content=question, from_assistant=False)
 
         history = list(conversation.messages.order_by('timestamp').values('content', 'from_assistant'))
+
         # exclude the message we just created from history passed to AI (it's already the last item)
         reply = _ask_assistant(question, history[:-1])
 
