@@ -93,3 +93,33 @@ class CoachScheduleView(APIView):
             .order_by('scheduled_slot')
         )
         return Response(CoachingSessionSerializer(sessions, many=True).data)
+
+
+
+# === SC-45: Upcoming Sessions for Coach ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.utils import timezone
+from .models import CoachingSession
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_upcoming_sessions(request):
+    sessions = CoachingSession.objects.filter(
+        coach__user=request.user,
+        scheduled_time__gte=timezone.now(),
+        status="accepted"
+    ).order_by("scheduled_time")
+
+    data = [
+        {
+            "id": s.id,
+            "member": str(s.member),
+            "time": s.scheduled_time,
+            "status": s.status,
+        }
+        for s in sessions
+    ]
+
+    return Response(data)

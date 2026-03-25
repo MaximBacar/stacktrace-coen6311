@@ -1,33 +1,38 @@
-import { motion } from 'framer-motion'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { fadeUp, stagger } from '../animations'
-import ScheduleTab from './components/ScheduleTab'
-import AvailabilityTab from './components/AvailabilityTab'
+
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function CalendarPage() {
+  const [sessions, setSessions] = useState([]);
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    try {
+      const res = await api.get("/coaching/sessions/upcoming/");
+      setSessions(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <motion.div className="flex flex-col gap-6 px-6 h-full min-h-0" variants={stagger()} initial="hidden" animate="show">
-      <motion.div variants={fadeUp}>
-        <h1 className="text-xl font-semibold tracking-tight">Calendar</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your schedule and availability.</p>
-      </motion.div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Upcoming Sessions</h1>
 
-      <motion.div variants={fadeUp} className="flex flex-col flex-1 min-h-0">
-        <Tabs defaultValue="schedule" className="flex flex-col flex-1 min-h-0">
-          <TabsList className="w-fit">
-            <TabsTrigger value="schedule">Schedule</TabsTrigger>
-            <TabsTrigger value="availability">Your Availabilities</TabsTrigger>
-          </TabsList>
+      {sessions.length === 0 && <p>No upcoming sessions</p>}
 
-          <TabsContent value="schedule" className="flex flex-col flex-1 min-h-0 mt-4">
-            <ScheduleTab />
-          </TabsContent>
-
-          <TabsContent value="availability" className="flex flex-col flex-1 min-h-0 mt-4">
-            <AvailabilityTab />
-          </TabsContent>
-        </Tabs>
-      </motion.div>
-    </motion.div>
-  )
+      <ul>
+        {sessions.map((s) => (
+          <li key={s.id} className="border p-3 mb-2">
+            <p><strong>Member:</strong> {s.member}</p>
+            <p><strong>Time:</strong> {new Date(s.time).toLocaleString()}</p>
+            <p><strong>Status:</strong> {s.status}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
