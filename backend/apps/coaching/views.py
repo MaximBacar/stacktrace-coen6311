@@ -93,3 +93,29 @@ class CoachScheduleView(APIView):
             .order_by('scheduled_slot')
         )
         return Response(CoachingSessionSerializer(sessions, many=True).data)
+
+
+
+# === SC-44: Accept/Reject Booking Requests ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import CoachingSession
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_booking(request, session_id):
+    session = CoachingSession.objects.get(id=session_id)
+    session.status = "accepted"
+    session.save()
+    return Response({"message": "Booking accepted"})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reject_booking(request, session_id):
+    session = CoachingSession.objects.get(id=session_id)
+    session.status = "rejected"
+    session.rejection_reason = request.data.get("reason", "")
+    session.save()
+    return Response({"message": "Booking rejected"})
