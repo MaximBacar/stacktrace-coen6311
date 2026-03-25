@@ -93,3 +93,24 @@ class CoachScheduleView(APIView):
             .order_by('scheduled_slot')
         )
         return Response(CoachingSessionSerializer(sessions, many=True).data)
+
+
+# === SC-46: View assigned member profiles ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from apps.users.models import Member
+from apps.users.serializers import AssignedMemberProfileSerializer
+from .models import CoachingSession
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_assigned_members_profiles(request):
+    assigned_member_ids = (
+        CoachingSession.objects.filter(coach__user=request.user)
+        .values_list("member_id", flat=True)
+        .distinct()
+    )
+    members = Member.objects.filter(id__in=assigned_member_ids).select_related("user")
+    serializer = AssignedMemberProfileSerializer(members, many=True)
+    return Response(serializer.data)

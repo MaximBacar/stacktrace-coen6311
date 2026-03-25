@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from .models import Member, Coach, Administrator
+from .models import  Member, Coach, Administrator
 
 
 class LoginSerializer(serializers.Serializer):
@@ -74,3 +74,17 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
 class AdminSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         model = Administrator
+
+
+class AssignedMemberProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    email = serializers.EmailField(source="user.email", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = Member
+        fields = ["id", "full_name", "username", "email", "goals", "restrictions"]
+
+    def get_full_name(self, obj):
+        full_name = f"{getattr(obj.user, 'first_name', '')} {getattr(obj.user, 'last_name', '')}".strip()
+        return full_name or getattr(obj.user, 'username', '')

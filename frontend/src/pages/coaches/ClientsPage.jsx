@@ -1,39 +1,52 @@
-import { useState } from 'react'
-import { Users } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { fadeUp, stagger } from './animations'
-import ChatPanel from '@/components/chat/ChatPanel'
+
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function ClientsPage() {
-  const [activeChatId, setActiveChatId] = useState(null)
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAssignedMembers();
+  }, []);
+
+  const fetchAssignedMembers = async () => {
+    try {
+      const res = await api.get("/coaching/assigned-members/profiles/");
+      setMembers(res.data || []);
+    } catch (err) {
+      console.error("Failed to load member profiles", err);
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading member profiles...</div>;
+  }
 
   return (
-    <motion.div
-      className="w-full h-full min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 px-6 overflow-hidden"
-      variants={stagger()}
-      initial="hidden"
-      animate="show"
-    >
-      <div className="flex flex-col gap-8">
-        <motion.div variants={fadeUp}>
-          <h1 className="text-xl font-semibold tracking-tight">Clients</h1>
-          <p className="text-sm text-muted-foreground mt-1">Members you are currently working with.</p>
-        </motion.div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Assigned Member Profiles</h1>
 
-        <motion.div variants={fadeUp} className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
-          <div className="rounded-2xl border p-5 bg-muted/30">
-            <Users size={28} strokeWidth={1.2} className="text-muted-foreground" />
-          </div>
-          <div>
-            <p className="font-medium">No clients yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Accepted session requests will appear here as active clients.</p>
-          </div>
-        </motion.div>
-      </div>
-
-      <motion.div variants={fadeUp} className="h-full min-h-0 py-1">
-        <ChatPanel activeChatId={activeChatId} onChatChange={setActiveChatId} />
-      </motion.div>
-    </motion.div>
-  )
+      {members.length === 0 ? (
+        <p>No assigned members found.</p>
+      ) : (
+        <div className="grid gap-4">
+          {members.map((member) => (
+            <div key={member.id} className="border rounded-lg p-4 shadow-sm bg-white">
+              <h2 className="text-lg font-semibold mb-2">
+                {member.full_name || member.username}
+              </h2>
+              <p><strong>Username:</strong> {member.username || "N/A"}</p>
+              <p><strong>Email:</strong> {member.email || "N/A"}</p>
+              <p className="mt-2"><strong>Goals:</strong> {member.goals || "No goals provided."}</p>
+              <p className="mt-2"><strong>Restrictions:</strong> {member.restrictions || "No restrictions provided."}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
