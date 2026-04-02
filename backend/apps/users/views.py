@@ -98,3 +98,38 @@ class CoachListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
+
+# === SC-30 Admin User Management ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+from .serializers import AdminUserSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_create_user(request):
+    serializer = AdminUserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def admin_update_user(request, user_id):
+    user = User.objects.get(id=user_id)
+    serializer = AdminUserSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_list_users(request):
+    users = User.objects.all()
+    serializer = AdminUserSerializer(users, many=True)
+    return Response(serializer.data)
