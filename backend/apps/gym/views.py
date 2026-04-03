@@ -216,3 +216,19 @@ class CancellationPolicyDetailView(APIView):
             return Response({'error': 'Cancellation policy not found.'}, status=status.HTTP_404_NOT_FOUND)
         policy.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Gym
+from .serializers import GymCapacitySerializer
+
+class GymCapacityView(APIView):
+    def get(self, request, gym_id):
+        try:
+            # پیدا کردن باشگاه بر اساس ID
+            gym = Gym.objects.get(id=gym_id)
+            # تبدیل اطلاعات باشگاه به فرمت قابل نمایش
+            serializer = GymCapacitySerializer(gym)
+            return Response(serializer.data)
+        except Gym.DoesNotExist:
+            return Response({'error': 'Gym not found'}, status=404)
