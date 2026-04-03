@@ -81,3 +81,23 @@ class CancellationPolicy(Policy):
 
     def __str__(self):
         return f'[Cancellation] {self.title}'
+    
+class Booking(models.Model):
+    class Status(models.TextChoices):
+        PENDING   = 'pending',   'Pending'
+        CONFIRMED = 'confirmed', 'Confirmed'
+        CANCELLED = 'cancelled', 'Cancelled'
+
+    gym        = models.ForeignKey(Gym, on_delete=models.CASCADE, related_name='bookings')
+    user       = models.ForeignKey('users.Member', on_delete=models.CASCADE, related_name='bookings')
+    start_time = models.DateTimeField()
+    end_time   = models.DateTimeField()
+    status     = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'bookings'
+        ordering = ['-start_time']
+
+    def __str__(self):
+        return f"{self.user} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"    
