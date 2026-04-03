@@ -9,6 +9,8 @@ class Gym(models.Model):
     phone       = models.CharField(max_length=30, blank=True)
     email       = models.EmailField(blank=True)
     description = models.TextField(blank=True)
+    max_capacity = models.PositiveIntegerField(default=50) 
+    current_occupancy = models.PositiveIntegerField(default=0)
     created_at  = models.DateTimeField(auto_now_add=True)
     admins      = models.ManyToManyField(Administrator, related_name='gyms', blank=True)
 

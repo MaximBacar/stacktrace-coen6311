@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     GymListView,
+    GymCapacityView,
     PolicyCategoryListView, PolicyCategoryDetailView,
     PolicyListView, PolicyDetailView,
     CancellationPolicyListView, CancellationPolicyDetailView,
@@ -20,6 +21,7 @@ urlpatterns = [
     path('<int:gym_id>/policies/<int:policy_id>/',         PolicyDetailView.as_view()),
 
     # Cancellation policies
-    path('<int:gym_id>/cancellation-policies/',            CancellationPolicyListView.as_view()),
-    path('<int:gym_id>/cancellation-policies/<int:policy_id>/', CancellationPolicyDetailView.as_view()),
+    path('<int:gym_id>/cancellation-policies/', CancellationPolicyListView.as_view(), name='cancellation-policy-list'),
+    path('<int:gym_id>/cancellation-policies/<int:policy_id>/', CancellationPolicyDetailView.as_view(), name='cancellation-policy-detail'),
+    path('<int:gym_id>/capacity/', GymCapacityView.as_view(), name='gym-capacity'),
 ]

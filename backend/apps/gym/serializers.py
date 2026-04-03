@@ -35,3 +35,11 @@ class CancellationPolicySerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+from rest_framework import serializers
+from .models import Gym
+
+class GymCapacitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gym
+        fields = ['id', 'name', 'max_capacity', 'current_occupancy']
