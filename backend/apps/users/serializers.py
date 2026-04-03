@@ -87,3 +87,16 @@ class RoleChangeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoleChangeLog
         fields = '__all__'
+
+class CoachApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coach
+        fields = ['id', 'status', 'rejection_reason', 'is_active']
+
+    def validate(self, data):
+        # Jira Requirement 2: Mandatory reason for rejection
+        if data.get('status') == 'rejected' and not data.get('rejection_reason'):
+            raise serializers.ValidationError(
+                {"rejection_reason": "You must provide a reason for rejecting this coach."}
+            )
+        return data

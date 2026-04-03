@@ -40,6 +40,18 @@ class Coach(User):
     tags         = models.JSONField(default=list)
     avatar_url   = models.URLField(blank=True)
     availability = models.JSONField(default=list, blank=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=(
+            ('pending', 'Pending'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected')
+        ),
+        default='pending'
+    )
+    rejection_reason = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    # ----------------------------------
 
     class Meta:
         db_table = 'coaches'

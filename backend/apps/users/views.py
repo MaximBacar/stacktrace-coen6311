@@ -11,6 +11,8 @@ from .serializers import (
     CoachSerializer,
     CoachDirectorySerializer,
     AdminSerializer,
+    UserRoleSerializer,
+    CoachApprovalSerializer,
 )
 
 def _get_role(user_pk):
@@ -133,3 +135,10 @@ class UserRoleUpdateView(generics.UpdateAPIView):
         
         return response
 
+class CoachApprovalView(generics.UpdateAPIView):
+    queryset = Coach.objects.all()
+    serializer_class = CoachApprovalSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return Coach.objects.filter(status='pending')
