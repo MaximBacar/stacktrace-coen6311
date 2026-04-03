@@ -13,6 +13,21 @@ class Gym(models.Model):
     current_occupancy = models.PositiveIntegerField(default=0)
     created_at  = models.DateTimeField(auto_now_add=True)
     admins      = models.ManyToManyField(Administrator, related_name='gyms', blank=True)
+    @property
+    def occupancy_percentage(self):
+        if self.max_capacity > 0:
+            return (self.current_occupancy / self.max_capacity) * 100
+        return 0
+
+    @property
+    def occupancy_status(self):
+        percent = self.occupancy_percentage
+        if percent < 50:
+            return "green"
+        elif percent < 85:
+            return "amber"
+        else:
+            return "red"
 
     class Meta:
         db_table = 'gyms'
