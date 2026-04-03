@@ -74,3 +74,29 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
 class AdminSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         model = Administrator
+
+from .models import User, RoleChangeLog
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'role']
+        read_only_fields = ['id', 'email', 'first_name', 'last_name']
+
+class RoleChangeLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleChangeLog
+        fields = '__all__'
+
+class CoachApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coach
+        fields = ['id', 'status', 'rejection_reason', 'is_active']
+
+    def validate(self, data):
+        # Jira Requirement 2: Mandatory reason for rejection
+        if data.get('status') == 'rejected' and not data.get('rejection_reason'):
+            raise serializers.ValidationError(
+                {"rejection_reason": "You must provide a reason for rejecting this coach."}
+            )
+        return data

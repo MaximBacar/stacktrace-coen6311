@@ -11,6 +11,8 @@ from .serializers import (
     CoachSerializer,
     CoachDirectorySerializer,
     AdminSerializer,
+    UserRoleSerializer,
+    CoachApprovalSerializer,
 )
 
 def _get_role(user_pk):
@@ -97,4 +99,46 @@ class CoachListView(APIView):
         serializer = CoachDirectorySerializer(coaches, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
+from .models import User, RoleChangeLog
+from .serializers import UserRoleSerializer
 
+class UserRoleUpdateView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserRoleSerializer
+    permission_classes = [IsAdminUser]
+
+    def update(self, request, *args, **kwargs):
+        target_user = self.get_object()
+        new_role = request.data.get('role')
+        old_role = target_user.role
+        admin_user = request.user
+
+        # Requirement 4: Prevent admin demotion
+        if old_role == 'admin' and new_role != 'admin':
+            return Response(
+                {"error": "Forbidden: You cannot demote another administrator."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Requirement 5: Log the change
+        response = super().update(request, *args, **kwargs)
+        
+        RoleChangeLog.objects.create(
+            target_user=target_user,
+            changed_by=admin_user,
+            old_role=old_role,
+            new_role=new_role
+        )
+        
+        return response
+
+class CoachApprovalView(generics.UpdateAPIView):
+    queryset = Coach.objects.all()
+    serializer_class = CoachApprovalSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return Coach.objects.filter(status='pending')

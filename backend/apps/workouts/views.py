@@ -14,19 +14,15 @@ from .serializers import (
     WorkoutLogReadSerializer,
 )
 
-
 def _owner_filter(user_id, user_role):
     return {'coach_id': user_id} if user_role == 'coach' else {'member_id': user_id}
-
 
 def _get_plan(plan_id, user_id, user_role):
     return WorkoutPlan.objects.get(pk=plan_id, **_owner_filter(user_id, user_role))
 
-
 def _get_day(plan_id, day_id, user_id, user_role):
     f = {f'workout_plan__{k}': v for k, v in _owner_filter(user_id, user_role).items()}
     return WorkoutDay.objects.get(pk=day_id, workout_plan_id=plan_id, **f)
-
 
 def _get_exercise(plan_id, day_id, exercise_id, user_id, user_role):
     f = {f'workout_day__workout_plan__{k}': v for k, v in _owner_filter(user_id, user_role).items()}
@@ -35,7 +31,6 @@ def _get_exercise(plan_id, day_id, exercise_id, user_id, user_role):
         workout_day__workout_plan_id=plan_id,
         **f,
     )
-
 
 class WorkoutPlanView(APIView):
     @role_required('member', 'coach')
@@ -59,9 +54,7 @@ class WorkoutPlanView(APIView):
 
         plan = serializer.save(**extra_data)
         WorkoutDay.objects.create(workout_plan=plan, day_index=1, name='Day A')
-
         return Response(WorkoutPlanSerializer(plan).data, status=status.HTTP_201_CREATED)
-
 
 class WorkoutPlanDetailView(APIView):
     @role_required('member', 'coach')
@@ -96,7 +89,6 @@ class WorkoutPlanDetailView(APIView):
         plan.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 class WorkoutDayView(APIView):
     @role_required('member', 'coach')
     def post(self, request, plan_id):
@@ -111,7 +103,6 @@ class WorkoutDayView(APIView):
 
         day = serializer.save(workout_plan=plan)
         return Response(CreateWorkoutDaySerializer(day).data, status=status.HTTP_201_CREATED)
-
 
 class WorkoutDayDetailView(APIView):
     @role_required('member', 'coach')
@@ -136,7 +127,6 @@ class WorkoutDayDetailView(APIView):
         day.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 class WorkoutExerciseView(APIView):
     @role_required('member', 'coach')
     def post(self, request, plan_id, day_id):
@@ -151,7 +141,6 @@ class WorkoutExerciseView(APIView):
 
         exercise = serializer.save(workout_day=day)
         return Response(AddExerciseSerializer(exercise).data, status=status.HTTP_201_CREATED)
-
 
 class WorkoutExerciseDetailView(APIView):
     @role_required('member', 'coach')
@@ -176,7 +165,6 @@ class WorkoutExerciseDetailView(APIView):
         exercise.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 class WorkoutLogsListView(APIView):
     @role_required('member')
     def get(self, request):
@@ -189,13 +177,12 @@ class WorkoutLogsListView(APIView):
         )
         return Response(WorkoutLogReadSerializer(logs, many=True).data)
 
-
 class WorkoutLogView(APIView):
     @role_required('member')
     @transaction.atomic
     def post(self, request, plan_id, day_id):
         try:
-            day = _get_day(plan_id, day_id, request.user_id)
+            day = _get_day(plan_id, day_id, request.user_id, 'member')
         except WorkoutDay.DoesNotExist:
             return Response({'error': 'Workout day not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -223,5 +210,4 @@ class WorkoutLogView(APIView):
             )
             for s in serializer.validated_data['sets']
         ])
-
         return Response({'id': log.pk, 'created_at': log.created_at}, status=status.HTTP_201_CREATED)
