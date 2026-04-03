@@ -8,6 +8,12 @@ class User(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     password_hash = models.CharField(max_length=255)
+    ROLE_CHOICES = (
+        ('admin', 'Admin'),
+        ('coach', 'Coach'),
+        ('member', 'Member'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
 
     class Meta:
         db_table = 'users'
@@ -37,5 +43,15 @@ class Coach(User):
 
     class Meta:
         db_table = 'coaches'
+
+class RoleChangeLog(models.Model):
+    target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='role_history')
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    old_role = models.CharField(max_length=20)
+    new_role = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'role_change_logs'
 
 

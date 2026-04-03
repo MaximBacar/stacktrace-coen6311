@@ -74,3 +74,16 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
 class AdminSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         model = Administrator
+
+from .models import User, RoleChangeLog
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'role']
+        read_only_fields = ['id', 'email', 'first_name', 'last_name']
+
+class RoleChangeLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleChangeLog
+        fields = '__all__'
