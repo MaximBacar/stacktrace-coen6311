@@ -52,7 +52,6 @@ class WorkoutPlanView(APIView):
 
         plan = serializer.save(**_owner_filter(request.user_id, request.user_role))
         WorkoutDay.objects.create(workout_plan=plan, day_index=1, name='Day A')
-
         return Response(WorkoutPlanSerializer(plan).data, status=status.HTTP_201_CREATED)
 
 
@@ -77,7 +76,9 @@ class WorkoutPlanDetailView(APIView):
         serializer = CreateWorkoutPlanSerializer(plan, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         serializer.save()
+        plan.refresh_from_db()
         return Response(WorkoutPlanSerializer(plan).data)
 
     @role_required('member', 'coach')
@@ -118,7 +119,7 @@ class WorkoutDayDetailView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        return Response(CreateWorkoutDaySerializer(day).data)
+        return Response(serializer.data)
 
     @role_required('member', 'coach')
     def delete(self, request, plan_id, day_id):
@@ -158,7 +159,7 @@ class WorkoutExerciseDetailView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        return Response(AddExerciseSerializer(exercise).data)
+        return Response(serializer.data)
 
     @role_required('member', 'coach')
     def delete(self, request, plan_id, day_id, exercise_id):
@@ -188,7 +189,7 @@ class WorkoutLogView(APIView):
     @transaction.atomic
     def post(self, request, plan_id, day_id):
         try:
-            day = _get_day(plan_id, day_id, request.user_id)
+            day = _get_day(plan_id, day_id, request.user_id, 'member')
         except WorkoutDay.DoesNotExist:
             return Response({'error': 'Workout day not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -216,5 +217,4 @@ class WorkoutLogView(APIView):
             )
             for s in serializer.validated_data['sets']
         ])
-
         return Response({'id': log.pk, 'created_at': log.created_at}, status=status.HTTP_201_CREATED)

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+
 from .models import User, Coach, Member, Administrator
 from .serializers import (
     LoginSerializer,
@@ -12,21 +13,14 @@ from .serializers import (
     CoachDirectorySerializer,
     AdminSerializer,
 )
-
-def _get_role(user_pk):
-    if Member.objects.filter(pk=user_pk).exists():
-        return 'member'
-    if Coach.objects.filter(pk=user_pk).exists():
-        return 'coach'
-    if Administrator.objects.filter(pk=user_pk).exists():
-        return 'admin'
-    return None
+from .decorators import role_required
+from .utils import get_role
 
 
 ROLE_SERIALIZERS = {
     'member': MemberSerializer,
-    'coach': CoachSerializer,
-    'admin': AdminSerializer,
+    'coach':  CoachSerializer,
+    'admin':  AdminSerializer,
 }
 
 
@@ -40,7 +34,7 @@ class RegisterView(APIView):
 
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            user = serializer.save(role=role)
             return Response({'id': user.pk, 'role': role}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -52,7 +46,7 @@ class LoginView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        email = serializer.validated_data['email']
+        email    = serializer.validated_data['email']
         password = serializer.validated_data['password']
 
         try:
@@ -64,12 +58,12 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         refresh = RefreshToken.for_user(user)
-        refresh['role']         = _get_role(user.pk)
-        refresh['email']        = user.email
-        refresh['full_name']    = f'{user.first_name} {user.last_name}'.strip()
+        refresh['role']      = get_role(user.pk)
+        refresh['email']     = user.email
+        refresh['full_name'] = f'{user.first_name} {user.last_name}'.strip()
 
         return Response({
-            'access': str(refresh.access_token),
+            'access':  str(refresh.access_token),
             'refresh': str(refresh),
         }, status=status.HTTP_200_OK)
 
@@ -94,7 +88,5 @@ class TokenRefreshView(APIView):
 class CoachListView(APIView):
     def get(self, request):
         coaches = Coach.objects.order_by('first_name', 'last_name')
-        serializer = CoachDirectorySerializer(coaches, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+        return Response(CoachDirectorySerializer(coaches, many=True).data, status=status.HTTP_200_OK)
 
