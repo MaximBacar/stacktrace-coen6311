@@ -95,6 +95,9 @@ export const createCancellationPolicy   = (gymId, data)            => api.post(`
 export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`, data).then(r => r.data)
 export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
 
+// Coaching — coach-side
+export const fetchAssignedClients = () => api.get('/api/coaching/clients/').then(r => r.data)
+
 // Analytics
 export const fetchPeakHours = (date, membershipType) => {
     const params = new URLSearchParams()
