@@ -15,13 +15,3 @@ class CoachingSession(models.Model):
 
     class Meta:
         db_table = 'coaching_sessions'
-
-
-# === SC-58: Gym Rules ===
-class GymRule(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.title

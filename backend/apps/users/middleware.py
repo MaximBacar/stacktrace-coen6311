@@ -1,16 +1,7 @@
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-
-def _lookup_role(user_id):
-    from apps.users.models import Member, Coach, Administrator
-    if Member.objects.filter(pk=user_id).exists():
-        return 'member'
-    if Coach.objects.filter(pk=user_id).exists():
-        return 'coach'
-    if Administrator.objects.filter(pk=user_id).exists():
-        return 'admin'
-    return None
+from .utils import get_role
 
 
 class JWTAuthMiddleware:
@@ -27,7 +18,7 @@ class JWTAuthMiddleware:
             try:
                 token = AccessToken(token_str)
                 request.user_id = int(token['user_id'])
-                request.user_role = token.get('role') or _lookup_role(request.user_id)
+                request.user_role = token.get('role') or get_role(request.user_id)
             except (InvalidToken, TokenError):
                 pass
 

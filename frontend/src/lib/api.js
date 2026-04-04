@@ -82,6 +82,8 @@ export const deleteConversation      = (conversationId)          => api.delete(`
 
 // Gym & Policies
 export const fetchGyms                  = ()                       => api.get('/api/gyms/').then(r => r.data)
+export const fetchGymCapacity           = (gymId)                  => api.get(`/api/gyms/${gymId}/capacity/`).then(r => r.data)
+export const updateGymCapacity          = (gymId, data)            => api.patch(`/api/gyms/${gymId}/capacity/`, data).then(r => r.data)
 export const fetchPolicyCategories      = (gymId)                  => api.get(`/api/gyms/${gymId}/policy-categories/`).then(r => r.data)
 export const createPolicyCategory       = (gymId, data)            => api.post(`/api/gyms/${gymId}/policy-categories/`, data).then(r => r.data)
 export const updatePolicyCategory       = (gymId, catId, data)     => api.patch(`/api/gyms/${gymId}/policy-categories/${catId}/`, data).then(r => r.data)
@@ -94,6 +96,23 @@ export const fetchCancellationPolicies  = (gymId)                  => api.get(`/
 export const createCancellationPolicy   = (gymId, data)            => api.post(`/api/gyms/${gymId}/cancellation-policies/`, data).then(r => r.data)
 export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`, data).then(r => r.data)
 export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
+
+// Admin management
+export const fetchAdminUsers = ()             => api.get('/api/admin/users/').then(r => r.data)
+export const updateAdminUser = (userId, data) => api.patch(`/api/admin/users/${userId}/`, data).then(r => r.data)
+export const updateUserRole  = (pk, data)     => api.patch(`/api/admin/users/${pk}/role/`, data).then(r => r.data)
+export const approveCoach    = (pk, data)     => api.patch(`/api/admin/coaches/${pk}/approve/`, data).then(r => r.data)
+
+// Coaching — coach-side
+export const fetchAssignedClients = () => api.get('/api/coaching/clients/').then(r => r.data)
+
+// Analytics
+export const fetchPeakHours = (date, membershipType) => {
+    const params = new URLSearchParams()
+    if (date) params.set('date', date)
+    if (membershipType) params.set('membership_type', membershipType)
+    return api.get(`/analytics/peak-hours/?${params}`).then(r => r.data)
+}
 
 // Chat
 export const fetchChats        = ()                => api.get('/api/chat/').then(r => r.data)

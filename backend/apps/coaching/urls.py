@@ -1,6 +1,13 @@
 from django.urls import path
 
 from .views import get_gym_rules, create_gym_rule,  CoachingSessionBookingView, CoachingSessionDetailView, CoachAvailabilityView, CoachScheduleView
+from .views import (
+    CoachingSessionBookingView,
+    CoachingSessionDetailView,
+    CoachAvailabilityView,
+    CoachScheduleView,
+    AssignedMembersView,
+)
 
 urlpatterns = [
     path('sessions/',                  CoachingSessionBookingView.as_view()),
@@ -10,4 +17,5 @@ urlpatterns = [
 
     path('gym-rules/', get_gym_rules),
     path('gym-rules/create/', create_gym_rule),
+    path('clients/',                   AssignedMembersView.as_view()),
 ]
