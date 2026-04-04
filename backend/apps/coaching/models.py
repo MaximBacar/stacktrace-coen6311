@@ -16,12 +16,3 @@ class CoachingSession(models.Model):
     class Meta:
         db_table = 'coaching_sessions'
 
-
-# === SC-57: Real-time gym capacity ===
-class GymCapacity(models.Model):
-    current_count = models.PositiveIntegerField(default=0)
-    max_capacity = models.PositiveIntegerField(default=50)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.current_count}/{self.max_capacity}"

@@ -64,6 +64,17 @@ class GymCapacityView(APIView):
             return Response({'error': 'Gym not found.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(GymCapacitySerializer(gym).data)
 
+    @role_required('admin')
+    def patch(self, request, gym_id):
+        gym = _get_gym(gym_id)
+        if not gym:
+            return Response({'error': 'Gym not found.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = GymCapacitySerializer(gym, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data)
+
 
 # ── Policy Categories ─────────────────────────────────────────────────────────
 
