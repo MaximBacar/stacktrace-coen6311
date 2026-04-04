@@ -13,6 +13,7 @@ import ProfilePage       from './pages/members/settings/ProfilePage'
 import SettingsPage      from './pages/members/settings/SettingsPage'
 import CoachingPage      from './pages/members/coaching/CoachingPage'
 import FaqPage           from './pages/members/faq/FaqPage'
+import MemberPoliciesPage from './pages/members/policies/PoliciesPage'
 import MemberLayout      from './layouts/MemberLayout'
 
 import CoachLayout       from './layouts/CoachLayout'
@@ -79,6 +80,7 @@ export function App() {
                   <Route path="/coaching"  element={<CoachingPage />}  />
                   <Route path="/nutrition" element={<NutritionPage />} />
                   <Route path="/faq"       element={<FaqPage />}       />
+                  <Route path="/policies"  element={<MemberPoliciesPage />}  />
                   <Route path="/profile"   element={<ProfilePage />}   />
                 </Route>
 
