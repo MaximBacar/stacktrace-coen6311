@@ -15,4 +15,3 @@ class CoachingSession(models.Model):
 
     class Meta:
         db_table = 'coaching_sessions'
-

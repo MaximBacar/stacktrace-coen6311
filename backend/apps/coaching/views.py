@@ -95,6 +95,31 @@ class CoachScheduleView(APIView):
         return Response(CoachingSessionSerializer(sessions, many=True).data)
 
 
+# === SC-58: View gym rules ===
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
+from .models import GymRule
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_gym_rules(request):
+    rules = GymRule.objects.all().order_by("-created_at")
+    data = [{"id": r.id, "title": r.title, "description": r.description} for r in rules]
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def create_gym_rule(request):
+    title = request.data.get("title")
+    description = request.data.get("description")
+
+    if not title or not description:
+        return Response({"detail": "Title and description required"}, status=400)
+
+    rule = GymRule.objects.create(title=title, description=description)
+    return Response({"id": rule.id, "title": rule.title, "description": rule.description})
 class AssignedMembersView(APIView):
     @role_required('coach')
     def get(self, request):
