@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import peak_hours_view
+from .views import PeakHoursView
 
 urlpatterns = [
-    path('dashboard/', peak_hours_view, name='peak_hours_dashboard'),
+    path('peak-hours/', PeakHoursView.as_view(), name='peak_hours'),
 ]

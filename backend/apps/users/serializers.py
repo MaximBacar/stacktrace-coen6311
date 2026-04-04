@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from .models import Member, Coach, Administrator
+
+from .models import Member, Coach, Administrator, User, RoleChangeLog
 
 
 class LoginSerializer(serializers.Serializer):
@@ -70,12 +71,10 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
         return obj.booked_sessions.filter(status='accepted').count()
 
 
-
 class AdminSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         model = Administrator
 
-from .models import User, RoleChangeLog
 
 class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,10 +82,12 @@ class UserRoleSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'first_name', 'last_name', 'role']
         read_only_fields = ['id', 'email', 'first_name', 'last_name']
 
+
 class RoleChangeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoleChangeLog
         fields = '__all__'
+
 
 class CoachApprovalSerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,9 +95,8 @@ class CoachApprovalSerializer(serializers.ModelSerializer):
         fields = ['id', 'status', 'rejection_reason', 'is_active']
 
     def validate(self, data):
-        # Jira Requirement 2: Mandatory reason for rejection
         if data.get('status') == 'rejected' and not data.get('rejection_reason'):
             raise serializers.ValidationError(
-                {"rejection_reason": "You must provide a reason for rejecting this coach."}
+                {'rejection_reason': 'You must provide a reason for rejecting this coach.'}
             )
         return data

@@ -95,6 +95,14 @@ export const createCancellationPolicy   = (gymId, data)            => api.post(`
 export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`, data).then(r => r.data)
 export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
 
+// Analytics
+export const fetchPeakHours = (date, membershipType) => {
+    const params = new URLSearchParams()
+    if (date) params.set('date', date)
+    if (membershipType) params.set('membership_type', membershipType)
+    return api.get(`/analytics/peak-hours/?${params}`).then(r => r.data)
+}
+
 // Chat
 export const fetchChats        = ()                => api.get('/api/chat/').then(r => r.data)
 export const getOrCreateChat   = (userId)          => api.post('/api/chat/', { user_id: userId }).then(r => r.data)

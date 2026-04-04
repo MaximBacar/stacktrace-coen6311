@@ -5,7 +5,10 @@ from rest_framework import status
 from apps.users.decorators import role_required
 
 from .models import Gym, PolicyCategory, Policy, CancellationPolicy
-from .serializers import GymSerializer, PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer
+from .serializers import (
+    GymSerializer, GymCapacitySerializer,
+    PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer,
+)
 
 
 # ── Gyms ──────────────────────────────────────────────────────────────────────
@@ -49,6 +52,17 @@ def _get_cancellation_policy(gym, policy_id):
         return CancellationPolicy.objects.get(pk=policy_id, gym=gym)
     except CancellationPolicy.DoesNotExist:
         return None
+
+
+# ── Gym Capacity ───────────────────────────────────────────────────────────────
+
+class GymCapacityView(APIView):
+    @role_required('admin')
+    def get(self, request, gym_id):
+        gym = _get_gym(gym_id)
+        if not gym:
+            return Response({'error': 'Gym not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(GymCapacitySerializer(gym).data)
 
 
 # ── Policy Categories ─────────────────────────────────────────────────────────
@@ -216,19 +230,3 @@ class CancellationPolicyDetailView(APIView):
             return Response({'error': 'Cancellation policy not found.'}, status=status.HTTP_404_NOT_FOUND)
         policy.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
-    from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Gym
-from .serializers import GymCapacitySerializer
-
-class GymCapacityView(APIView):
-    def get(self, request, gym_id):
-        try:
-            # پیدا کردن باشگاه بر اساس ID
-            gym = Gym.objects.get(id=gym_id)
-            # تبدیل اطلاعات باشگاه به فرمت قابل نمایش
-            serializer = GymCapacitySerializer(gym)
-            return Response(serializer.data)
-        except Gym.DoesNotExist:
-            return Response({'error': 'Gym not found'}, status=404)
