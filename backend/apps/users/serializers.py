@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from .models import Member, Coach, Administrator
+
+from .models import  Member, Coach, Administrator, User, RoleChangeLog
 
 
 class LoginSerializer(serializers.Serializer):
@@ -70,7 +71,6 @@ class CoachDirectorySerializer(serializers.ModelSerializer):
         return obj.booked_sessions.filter(status='accepted').count()
 
 
-
 class AdminSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         model = Administrator
@@ -101,3 +101,38 @@ class AdminUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'role']
+        read_only_fields = ['id', 'email', 'first_name', 'last_name']
+
+
+class RoleChangeLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleChangeLog
+        fields = '__all__'
+
+
+class AssignedMemberProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Member
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'email']
+
+    def get_full_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'.strip()
+
+
+class CoachApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coach
+        fields = ['id', 'status', 'rejection_reason', 'is_active']
+
+    def validate(self, data):
+        if data.get('status') == 'rejected' and not data.get('rejection_reason'):
+            raise serializers.ValidationError(
+                {'rejection_reason': 'You must provide a reason for rejecting this coach.'}
+            )
+        return data

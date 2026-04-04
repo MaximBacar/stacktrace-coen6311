@@ -8,6 +8,12 @@ class User(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     password_hash = models.CharField(max_length=255)
+    ROLE_CHOICES = (
+        ('admin', 'Admin'),
+        ('coach', 'Coach'),
+        ('member', 'Member'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
 
     class Meta:
         db_table = 'users'
@@ -34,8 +40,30 @@ class Coach(User):
     tags         = models.JSONField(default=list)
     avatar_url   = models.URLField(blank=True)
     availability = models.JSONField(default=list, blank=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=(
+            ('pending', 'Pending'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected')
+        ),
+        default='pending'
+    )
+    rejection_reason = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    # ----------------------------------
 
     class Meta:
         db_table = 'coaches'
+
+class RoleChangeLog(models.Model):
+    target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='role_history')
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    old_role = models.CharField(max_length=20)
+    new_role = models.CharField(max_length=20)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'role_change_logs'
 
 
