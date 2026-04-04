@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'apps.fitness_goals',
     'apps.gym',
     'apps.analytics',
+    'apps.administration',
 ]
 
 MIDDLEWARE = [

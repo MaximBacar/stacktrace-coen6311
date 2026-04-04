@@ -95,6 +95,12 @@ export const createCancellationPolicy   = (gymId, data)            => api.post(`
 export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`, data).then(r => r.data)
 export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
 
+// Admin management
+export const fetchAdminUsers = ()             => api.get('/api/admin/users/').then(r => r.data)
+export const updateAdminUser = (userId, data) => api.patch(`/api/admin/users/${userId}/`, data).then(r => r.data)
+export const updateUserRole  = (pk, data)     => api.patch(`/api/admin/users/${pk}/role/`, data).then(r => r.data)
+export const approveCoach    = (pk, data)     => api.patch(`/api/admin/coaches/${pk}/approve/`, data).then(r => r.data)
+
 // Coaching — coach-side
 export const fetchAssignedClients = () => api.get('/api/coaching/clients/').then(r => r.data)
 
