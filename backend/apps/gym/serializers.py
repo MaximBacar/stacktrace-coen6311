@@ -9,6 +9,15 @@ class GymSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'address', 'phone', 'email', 'description']
 
 
+class GymCapacitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Gym
+        fields = [
+            'id', 'name', 'max_capacity', 'current_occupancy',
+            'occupancy_percentage', 'occupancy_status',
+        ]
+
+
 class PolicyCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model  = PolicyCategory
@@ -35,18 +44,3 @@ class CancellationPolicySerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
-
-from rest_framework import serializers
-from .models import Gym
-
-class GymCapacitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gym
-        fields = [
-            'id', 
-            'name', 
-            'max_capacity', 
-            'current_occupancy', 
-            'occupancy_percentage', 
-            'occupancy_status'
-        ]
