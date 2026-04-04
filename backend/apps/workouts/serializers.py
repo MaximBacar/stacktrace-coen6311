@@ -33,8 +33,7 @@ class WorkoutPlanSerializer(serializers.ModelSerializer):
 class CreateWorkoutPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkoutPlan
-        fields = ['id', 'member', 'name', 'description']
-        read_only_fields = ['member']
+        fields = ['id', 'member', 'coach', 'name', 'description']
 
 
 class CreateWorkoutDaySerializer(serializers.ModelSerializer):
