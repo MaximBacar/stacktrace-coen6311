@@ -95,67 +95,6 @@ class CoachScheduleView(APIView):
         return Response(CoachingSessionSerializer(sessions, many=True).data)
 
 
-# === SC-57: Admin gym capacity management ===
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status
-from .models import GymCapacity
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_gym_capacity(request):
-    capacity, _ = GymCapacity.objects.get_or_create(
-        id=1, defaults={"current_count": 0, "max_capacity": 50}
-    )
-    return Response({
-        "current_count": capacity.current_count,
-        "max_capacity": capacity.max_capacity,
-        "updated_at": capacity.updated_at,
-        "is_full": capacity.current_count >= capacity.max_capacity,
-    })
-
-@api_view(["PUT"])
-@permission_classes([IsAdminUser])
-def update_gym_capacity(request):
-    capacity, _ = GymCapacity.objects.get_or_create(
-        id=1, defaults={"current_count": 0, "max_capacity": 50}
-    )
-
-    current_count = request.data.get("current_count", capacity.current_count)
-    max_capacity = request.data.get("max_capacity", capacity.max_capacity)
-
-    try:
-        current_count = int(current_count)
-        max_capacity = int(max_capacity)
-    except (TypeError, ValueError):
-        return Response(
-            {"detail": "current_count and max_capacity must be integers"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if current_count < 0 or max_capacity < 1:
-        return Response(
-            {"detail": "Invalid capacity values"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if current_count > max_capacity:
-        return Response(
-            {"detail": "Current count cannot exceed max capacity"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    capacity.current_count = current_count
-    capacity.max_capacity = max_capacity
-    capacity.save()
-
-    return Response({
-        "current_count": capacity.current_count,
-        "max_capacity": capacity.max_capacity,
-        "updated_at": capacity.updated_at,
-        "is_full": capacity.current_count >= capacity.max_capacity,
-    })
 class AssignedMembersView(APIView):
     @role_required('coach')
     def get(self, request):

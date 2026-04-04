@@ -82,6 +82,8 @@ export const deleteConversation      = (conversationId)          => api.delete(`
 
 // Gym & Policies
 export const fetchGyms                  = ()                       => api.get('/api/gyms/').then(r => r.data)
+export const fetchGymCapacity           = (gymId)                  => api.get(`/api/gyms/${gymId}/capacity/`).then(r => r.data)
+export const updateGymCapacity          = (gymId, data)            => api.patch(`/api/gyms/${gymId}/capacity/`, data).then(r => r.data)
 export const fetchPolicyCategories      = (gymId)                  => api.get(`/api/gyms/${gymId}/policy-categories/`).then(r => r.data)
 export const createPolicyCategory       = (gymId, data)            => api.post(`/api/gyms/${gymId}/policy-categories/`, data).then(r => r.data)
 export const updatePolicyCategory       = (gymId, catId, data)     => api.patch(`/api/gyms/${gymId}/policy-categories/${catId}/`, data).then(r => r.data)
