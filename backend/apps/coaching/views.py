@@ -2,11 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from apps.users.decorators import role_required
+from apps.users.models import Coach, Member
+from apps.users.serializers import AssignedMemberProfileSerializer
+
 from .models import CoachingSession
 from .serializers import CoachingSessionSerializer
 
-from apps.users.models import Coach
-from apps.users.decorators import role_required
 
 class CoachingSessionBookingView(APIView):
     def get(self, request):
@@ -23,7 +25,6 @@ class CoachingSessionBookingView(APIView):
         if serializer.is_valid():
             session = serializer.save()
             return Response(CoachingSessionSerializer(session).data, status=status.HTTP_201_CREATED)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -53,8 +54,7 @@ class CoachingSessionDetailView(APIView):
 
         session.status = 'canceled'
         session.save(update_fields=['status'])
-        serializer = CoachingSessionSerializer(session)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(CoachingSessionSerializer(session).data, status=status.HTTP_200_OK)
 
 
 class CoachAvailabilityView(APIView):
@@ -95,27 +95,15 @@ class CoachScheduleView(APIView):
         return Response(CoachingSessionSerializer(sessions, many=True).data)
 
 
-
-# === SC-44: Accept/Reject Booking Requests ===
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from .models import CoachingSession
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def accept_booking(request, session_id):
-    session = CoachingSession.objects.get(id=session_id)
-    session.status = "accepted"
-    session.save()
-    return Response({"message": "Booking accepted"})
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def reject_booking(request, session_id):
-    session = CoachingSession.objects.get(id=session_id)
-    session.status = "rejected"
-    session.rejection_reason = request.data.get("reason", "")
-    session.save()
-    return Response({"message": "Booking rejected"})
+class AssignedMembersView(APIView):
+    @role_required('coach')
+    def get(self, request):
+        member_ids = (
+            CoachingSession.objects
+            .filter(coach_id=request.user_id)
+            .exclude(status__in=['canceled', 'rejected'])
+            .values_list('member_id', flat=True)
+            .distinct()
+        )
+        members = Member.objects.filter(id__in=member_ids)
+        return Response(AssignedMemberProfileSerializer(members, many=True).data)

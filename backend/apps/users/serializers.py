@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
-from .models import Member, Coach, Administrator, User, RoleChangeLog
+from .models import  Member, Coach, Administrator, User, RoleChangeLog
 
 
 class LoginSerializer(serializers.Serializer):
@@ -87,6 +87,17 @@ class RoleChangeLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoleChangeLog
         fields = '__all__'
+
+
+class AssignedMemberProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Member
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'email']
+
+    def get_full_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'.strip()
 
 
 class CoachApprovalSerializer(serializers.ModelSerializer):
