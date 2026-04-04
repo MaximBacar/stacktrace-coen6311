@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 
-from .models import  Member, Coach, Administrator, User, RoleChangeLog
+from .models import Member, Coach, Administrator, User
 
 
 class LoginSerializer(serializers.Serializer):
@@ -76,43 +76,7 @@ class AdminSerializer(BaseUserSerializer):
         model = Administrator
 
 
-# === SC-30 Serializer ===
-from django.contrib.auth.models import User
-
-class AdminUserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
-    class Meta:
-        model = User
-        fields = ["id", "username", "email", "password", "first_name", "last_name", "is_staff"]
-
-    def create(self, validated_data):
-        password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
-
-    def update(self, instance, validated_data):
-        password = validated_data.pop("password", None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        if password:
-            instance.set_password(password)
-        instance.save()
-        return instance
-class UserRoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'role']
-        read_only_fields = ['id', 'email', 'first_name', 'last_name']
-
-
-class RoleChangeLogSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RoleChangeLog
-        fields = '__all__'
-
+# ── Coaching ──────────────────────────────────────────────────────────────────
 
 class AssignedMemberProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -123,16 +87,3 @@ class AssignedMemberProfileSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return f'{obj.first_name} {obj.last_name}'.strip()
-
-
-class CoachApprovalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Coach
-        fields = ['id', 'status', 'rejection_reason', 'is_active']
-
-    def validate(self, data):
-        if data.get('status') == 'rejected' and not data.get('rejection_reason'):
-            raise serializers.ValidationError(
-                {'rejection_reason': 'You must provide a reason for rejecting this coach.'}
-            )
-        return data

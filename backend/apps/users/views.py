@@ -5,27 +5,16 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-from .models import User, Coach, Member, Administrator, RoleChangeLog
+from .models import User, Coach, Member, Administrator
 from .serializers import (
     LoginSerializer,
     MemberSerializer,
     CoachSerializer,
     CoachDirectorySerializer,
     AdminSerializer,
-    UserRoleSerializer,
-    CoachApprovalSerializer,
 )
 from .decorators import role_required
-
-
-def _get_role(user_pk):
-    if Member.objects.filter(pk=user_pk).exists():
-        return 'member'
-    if Coach.objects.filter(pk=user_pk).exists():
-        return 'coach'
-    if Administrator.objects.filter(pk=user_pk).exists():
-        return 'admin'
-    return None
+from .utils import get_role
 
 
 ROLE_SERIALIZERS = {
@@ -45,7 +34,7 @@ class RegisterView(APIView):
 
         serializer = serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            user = serializer.save(role=role)
             return Response({'id': user.pk, 'role': role}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -57,7 +46,7 @@ class LoginView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        email = serializer.validated_data['email']
+        email    = serializer.validated_data['email']
         password = serializer.validated_data['password']
 
         try:
@@ -69,7 +58,7 @@ class LoginView(APIView):
             return Response({'error': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         refresh = RefreshToken.for_user(user)
-        refresh['role']      = _get_role(user.pk)
+        refresh['role']      = get_role(user.pk)
         refresh['email']     = user.email
         refresh['full_name'] = f'{user.first_name} {user.last_name}'.strip()
 
@@ -99,98 +88,5 @@ class TokenRefreshView(APIView):
 class CoachListView(APIView):
     def get(self, request):
         coaches = Coach.objects.order_by('first_name', 'last_name')
-        serializer = CoachDirectorySerializer(coaches, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(CoachDirectorySerializer(coaches, many=True).data, status=status.HTTP_200_OK)
 
-
-
-
-# === SC-30 Admin User Management ===
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.models import User
-from .serializers import AdminUserSerializer
-
-@api_view(['POST'])
-@permission_classes([IsAdminUser])
-def admin_create_user(request):
-    serializer = AdminUserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
-
-@api_view(['PUT'])
-@permission_classes([IsAdminUser])
-def admin_update_user(request, user_id):
-    user = User.objects.get(id=user_id)
-    serializer = AdminUserSerializer(user, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=400)
-
-@api_view(['GET'])
-@permission_classes([IsAdminUser])
-def admin_list_users(request):
-    users = User.objects.all()
-    serializer = AdminUserSerializer(users, many=True)
-    return Response(serializer.data)
-# ── Role Management ───────────────────────────────────────────────────────────
-
-class UserRoleUpdateView(APIView):
-    @role_required('admin')
-    def patch(self, request, pk):
-        try:
-            target_user = User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        new_role = request.data.get('role')
-        old_role = target_user.role
-
-        if old_role == 'admin' and new_role != 'admin':
-            return Response(
-                {'error': 'You cannot demote another administrator.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = UserRoleSerializer(target_user, data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-
-        try:
-            admin_user = User.objects.get(pk=request.user_id)
-        except User.DoesNotExist:
-            admin_user = None
-
-        RoleChangeLog.objects.create(
-            target_user=target_user,
-            changed_by=admin_user,
-            old_role=old_role,
-            new_role=new_role,
-        )
-
-        return Response(serializer.data)
-
-
-# ── Coach Approval ────────────────────────────────────────────────────────────
-
-class CoachApprovalView(APIView):
-    @role_required('admin')
-    def patch(self, request, pk):
-        try:
-            coach = Coach.objects.get(pk=pk)
-        except Coach.DoesNotExist:
-            return Response({'error': 'Coach not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = CoachApprovalSerializer(coach, data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save()
-        return Response(serializer.data)
