@@ -6,6 +6,7 @@ from .views import (
     CoachAvailabilityView,
     CoachScheduleView,
     AssignedMembersView,
+    SessionEquipmentReservationView,
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     path('availability/',              CoachAvailabilityView.as_view()),
     path('schedule/',                  CoachScheduleView.as_view()),
     path('clients/',                   AssignedMembersView.as_view()),
+    path('sessions/<int:session_id>/equipment-reservations/', SessionEquipmentReservationView.as_view()),
 ]

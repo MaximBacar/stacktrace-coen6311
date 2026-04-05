@@ -1,8 +1,56 @@
 from django.db import transaction
+from django.db.models import Sum
 from rest_framework import serializers
 
+from apps.gym.models import Equipment
 from apps.users.models import Member, Coach
-from .models import CoachingSession
+from .models import CoachingSession, EquipmentReservation
+
+
+class EquipmentReservationSerializer(serializers.ModelSerializer):
+    equipment_name = serializers.CharField(source='equipment.name', read_only=True)
+    gym_name = serializers.CharField(source='equipment.gym.name', read_only=True)
+
+    class Meta:
+        model = EquipmentReservation
+        fields = ['id', 'equipment', 'equipment_name', 'gym_name', 'quantity', 'status', 'created_at']
+        read_only_fields = ['id', 'equipment_name', 'gym_name', 'status', 'created_at']
+
+
+class EquipmentReservationCreateSerializer(serializers.ModelSerializer):
+    equipment = serializers.PrimaryKeyRelatedField(queryset=Equipment.objects.all())
+
+    class Meta:
+        model = EquipmentReservation
+        fields = ['equipment', 'quantity']
+
+    def validate(self, attrs):
+        equipment = attrs['equipment']
+        quantity = attrs['quantity']
+        session = self.context['session']
+
+        if quantity < 1:
+            raise serializers.ValidationError({'quantity': 'Quantity must be at least 1.'})
+
+        if equipment.status != Equipment.Status.ACTIVE:
+            raise serializers.ValidationError({'equipment': 'Only active equipment can be reserved.'})
+
+        issue_count = equipment.issues.exclude(status='resolved').count()
+        reserved_count = (
+            equipment.session_reservations
+            .filter(status=EquipmentReservation.Status.RESERVED)
+            .exclude(session=session)
+            .aggregate(total=Sum('quantity'))
+        )
+        already_reserved = reserved_count.get('total') or 0
+        available_units = max(equipment.quantity - issue_count - already_reserved, 0)
+
+        if quantity > available_units:
+            raise serializers.ValidationError({
+                'quantity': f'Only {available_units} unit(s) are currently available for reservation.'
+            })
+
+        return attrs
 
 
 class CoachingSessionSerializer(serializers.ModelSerializer):
@@ -12,12 +60,14 @@ class CoachingSessionSerializer(serializers.ModelSerializer):
     coach_specialty  = serializers.CharField(source='coach.specialty', read_only=True)
     coach_avatar_url = serializers.URLField(source='coach.avatar_url', read_only=True)
     member_name      = serializers.SerializerMethodField(read_only=True)
+    equipment_reservations = EquipmentReservationSerializer(many=True, read_only=True)
 
     class Meta:
         model = CoachingSession
         fields = [
             'id', 'member_id', 'coach_id', 'coach_name', 'coach_specialty', 'coach_avatar_url',
             'member_name', 'scheduled_slot', 'duration', 'goals', 'status', 'rejection_reason', 'created_at',
+            'equipment_reservations',
         ]
         read_only_fields = ['id', 'status', 'rejection_reason', 'created_at']
 
