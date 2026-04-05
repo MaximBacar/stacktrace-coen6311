@@ -107,3 +107,47 @@ class AssignedMembersView(APIView):
         )
         members = Member.objects.filter(id__in=member_ids)
         return Response(AssignedMemberProfileSerializer(members, many=True).data)
+
+
+# === SC-76 Reports ===
+from rest_framework.permissions import IsAdminUser
+from django.utils import timezone
+import csv
+from django.http import HttpResponse
+from .models import CoachingSession
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_report(request):
+    start=request.GET.get("start")
+    end=request.GET.get("end")
+
+    qs=CoachingSession.objects.all()
+    if start and end:
+        qs=qs.filter(scheduled_time__range=[start,end])
+
+    total=qs.count()
+    completed=qs.filter(status="completed").count()
+    cancelled=qs.filter(status="cancelled").count()
+    booked=qs.filter(status="pending").count()
+
+    data={
+        "total_sessions":total,
+        "completed":completed,
+        "cancelled":cancelled,
+        "booked":booked,
+        "generated_at":str(timezone.now())
+    }
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def export_report_csv(request):
+    qs=CoachingSession.objects.all()
+    response=HttpResponse(content_type='text/csv')
+    response['Content-Disposition']='attachment; filename="report.csv"'
+    writer=csv.writer(response)
+    writer.writerow(["ID","Status","Time"])
+    for s in qs:
+        writer.writerow([s.id,s.status,s.scheduled_time])
+    return response

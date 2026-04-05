@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (
+from .views import admin_report, export_report_csv,  (
     CoachingSessionBookingView,
     CoachingSessionDetailView,
     CoachAvailabilityView,
@@ -14,4 +14,7 @@ urlpatterns = [
     path('availability/',              CoachAvailabilityView.as_view()),
     path('schedule/',                  CoachScheduleView.as_view()),
     path('clients/',                   AssignedMembersView.as_view()),
+
+path('admin/report/',admin_report),
+path('admin/report/export/',export_report_csv),
 ]
