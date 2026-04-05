@@ -9,6 +9,7 @@ from .serializers import (
     GymSerializer, GymCapacitySerializer,
     PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer,
     EquipmentAvailabilitySerializer,
+    EquipmentIssueReportSerializer,
 )
 
 
@@ -75,6 +76,22 @@ class EquipmentAvailabilityListView(APIView):
             data = [item for item in data if item['availability_status'] == status_filter]
 
         return Response(data)
+
+
+class EquipmentIssueReportListView(APIView):
+    @role_required('member')
+    def post(self, request, equipment_id):
+        try:
+            equipment = Equipment.objects.get(pk=equipment_id)
+        except Equipment.DoesNotExist:
+            return Response({'error': 'Equipment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EquipmentIssueReportSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer.save(equipment=equipment, reported_by=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # ── Gym Capacity ───────────────────────────────────────────────────────────────

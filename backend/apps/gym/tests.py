@@ -10,7 +10,7 @@ class EquipmentAvailabilityTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.gym = Gym.objects.create(name='Downtown Gym')
-        Member.objects.create(
+        self.member = Member.objects.create(
             email='member@example.com',
             first_name='Taylor',
             last_name='Lee',
@@ -55,3 +55,17 @@ class EquipmentAvailabilityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['name'], 'Treadmill')
+
+    def test_member_can_report_equipment_issue(self):
+        equipment = Equipment.objects.filter(gym=self.gym).first()
+
+        self.client.force_authenticate(user=self.member)
+        response = self.client.post(
+            f'/api/gyms/equipment/{equipment.id}/issues/',
+            {'description': 'The treadmill belt keeps slipping.'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(equipment.issues.count(), 8)
+        self.assertEqual(response.data['reporter_name'], 'Taylor Lee')

@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Activity, Wrench } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-import { fetchGyms, fetchGymEquipment } from '@/lib/api'
+import { fetchGyms, fetchGymEquipment, reportEquipmentIssue } from '@/lib/api'
+import { useAuth } from '@/hooks/useAuth'
 
 const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.25 } } }
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
@@ -16,7 +17,26 @@ const STATUS_TONE = {
 }
 
 function EquipmentCard({ item }) {
+  const queryClient = useQueryClient()
+  const { isAuthenticated, user } = useAuth()
+  const [description, setDescription] = useState('')
+  const reportMutation = useMutation({
+    mutationFn: (payload) => reportEquipmentIssue(item.id, payload),
+    onSuccess: () => {
+      setDescription('')
+      queryClient.invalidateQueries({ queryKey: ['gym-equipment', item.gym] })
+    },
+  })
   const fill = item.total_units > 0 ? Math.min((item.available_units / item.total_units) * 100, 100) : 0
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    if (!isAuthenticated || !user?.user_id) {
+      return
+    }
+
+    reportMutation.mutate({ description })
+  }
 
   return (
     <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
@@ -51,6 +71,38 @@ function EquipmentCard({ item }) {
       {item.notes && (
         <p className="text-sm text-muted-foreground">{item.notes}</p>
       )}
+
+      <form onSubmit={handleSubmit} className="space-y-3 border-t pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Report equipment issue
+        </p>
+        <textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          rows="3"
+          required
+          className="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          placeholder="Describe what is broken or unavailable."
+        />
+        <button
+          type="submit"
+          disabled={!isAuthenticated || reportMutation.isPending}
+          className="rounded-lg bg-foreground px-3 py-2 text-sm text-background disabled:opacity-50"
+        >
+          {reportMutation.isPending ? 'Reporting...' : 'Report issue'}
+        </button>
+        {!isAuthenticated && (
+          <p className="text-xs text-muted-foreground">Sign in as a member to report equipment issues.</p>
+        )}
+        {reportMutation.isSuccess && (
+          <p className="text-xs text-green-700">Issue reported to gym staff.</p>
+        )}
+        {reportMutation.isError && (
+          <p className="text-xs text-red-600">
+            {reportMutation.error?.response?.data?.description?.[0] ?? reportMutation.error?.response?.data?.error ?? 'Could not submit the report.'}
+          </p>
+        )}
+      </form>
     </motion.div>
   )
 }
