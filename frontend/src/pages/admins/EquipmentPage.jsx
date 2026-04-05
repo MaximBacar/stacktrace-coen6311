@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wrench } from 'lucide-react'
+import { Clock3, Wrench } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { fadeUp, stagger } from './animations'
-import { createEquipment, deleteEquipment, fetchAdminEquipment, fetchGyms, updateEquipment } from '../../lib/api'
+import { createEquipment, deleteEquipment, fetchAdminEquipment, fetchEquipmentReservations, fetchGyms, updateEquipment } from '../../lib/api'
 
 const EMPTY_FORM = {
   gym: '',
@@ -72,6 +72,43 @@ function EquipmentRow({ item, onSave, onDelete }) {
   )
 }
 
+function ReservationSummary({ selectedGymId, equipment }) {
+  const equipmentIds = equipment.map((item) => item.id)
+  const { data: reservations = [] } = useQuery({
+    queryKey: ['equipment-reservations', selectedGymId],
+    queryFn: () => fetchEquipmentReservations(),
+  })
+
+  const relevantReservations = reservations.filter((reservation) => equipmentIds.includes(reservation.equipment))
+
+  return (
+    <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <Clock3 size={18} className="text-muted-foreground" />
+        <div>
+          <h2 className="text-sm font-semibold">Real-time reservation tracking</h2>
+          <p className="text-xs text-muted-foreground mt-1">Current equipment reservations for this gym.</p>
+        </div>
+      </div>
+
+      {relevantReservations.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No active equipment reservations right now.</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {relevantReservations.map((reservation) => (
+            <div key={reservation.id} className="rounded-lg border bg-muted/20 p-3 text-sm">
+              <p className="font-medium">{reservation.equipment_name} x{reservation.quantity}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {reservation.member_name} with {reservation.coach_name} • {reservation.session_slot}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 export default function EquipmentPage() {
   const queryClient = useQueryClient()
   const [selectedGymId, setSelectedGymId] = useState('')
@@ -113,7 +150,7 @@ export default function EquipmentPage() {
     <motion.div className="flex flex-col gap-6 px-6" variants={stagger()} initial="hidden" animate="show">
       <motion.div variants={fadeUp}>
         <h1 className="text-xl font-semibold tracking-tight">Equipment</h1>
-        <p className="text-sm text-muted-foreground mt-1">Add, update, and remove gym equipment.</p>
+        <p className="text-sm text-muted-foreground mt-1">Add, update, remove, and monitor equipment reservations in real time.</p>
       </motion.div>
 
       <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
@@ -151,6 +188,10 @@ export default function EquipmentPage() {
         <motion.div variants={fadeUp} className="flex flex-col gap-3">
           {[...Array(2)].map((_, i) => <div key={i} className="h-36 rounded-xl border bg-muted/30 animate-pulse" />)}
         </motion.div>
+      )}
+
+      {!isLoading && selectedGymId && (
+        <ReservationSummary selectedGymId={selectedGymId} equipment={equipment} />
       )}
 
       {!isLoading && equipment.length === 0 && (

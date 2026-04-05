@@ -10,11 +10,20 @@ from .models import CoachingSession, EquipmentReservation
 class EquipmentReservationSerializer(serializers.ModelSerializer):
     equipment_name = serializers.CharField(source='equipment.name', read_only=True)
     gym_name = serializers.CharField(source='equipment.gym.name', read_only=True)
+    session_slot = serializers.CharField(source='session.scheduled_slot', read_only=True)
+    coach_name = serializers.SerializerMethodField(read_only=True)
+    member_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = EquipmentReservation
-        fields = ['id', 'equipment', 'equipment_name', 'gym_name', 'quantity', 'status', 'created_at']
-        read_only_fields = ['id', 'equipment_name', 'gym_name', 'status', 'created_at']
+        fields = ['id', 'equipment', 'equipment_name', 'gym_name', 'session_slot', 'coach_name', 'member_name', 'quantity', 'status', 'created_at']
+        read_only_fields = ['id', 'equipment_name', 'gym_name', 'session_slot', 'coach_name', 'member_name', 'status', 'created_at']
+
+    def get_coach_name(self, obj):
+        return f'{obj.session.coach.first_name} {obj.session.coach.last_name}'.strip()
+
+    def get_member_name(self, obj):
+        return f'{obj.session.member.first_name} {obj.session.member.last_name}'.strip()
 
 
 class EquipmentReservationCreateSerializer(serializers.ModelSerializer):
