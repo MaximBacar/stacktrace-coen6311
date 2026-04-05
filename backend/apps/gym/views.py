@@ -1,16 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.utils import timezone
 
 from apps.users.decorators import role_required
+from apps.users.models import Member
 
-from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment
+from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment, EquipmentIssue
 from .serializers import (
     GymSerializer, GymCapacitySerializer,
     PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer,
     EquipmentAvailabilitySerializer,
     EquipmentAdminSerializer,
     EquipmentIssueReportSerializer,
+    EquipmentIssueAdminSerializer,
 )
 
 
@@ -91,8 +94,54 @@ class EquipmentIssueReportListView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save(equipment=equipment, reported_by=request.user)
+        try:
+            member = Member.objects.get(pk=request.user_id)
+        except Member.DoesNotExist:
+            return Response({'error': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer.save(equipment=equipment, reported_by=member)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class EquipmentIssueAdminListView(APIView):
+    @role_required('admin')
+    def get(self, request):
+        issues = EquipmentIssue.objects.select_related('equipment__gym', 'reported_by').all()
+        gym_id = request.query_params.get('gym_id')
+        status_filter = request.query_params.get('status')
+        equipment_id = request.query_params.get('equipment_id')
+
+        if gym_id:
+            issues = issues.filter(equipment__gym_id=gym_id)
+        if status_filter:
+            issues = issues.filter(status=status_filter)
+        if equipment_id:
+            issues = issues.filter(equipment_id=equipment_id)
+
+        return Response(EquipmentIssueAdminSerializer(issues, many=True).data)
+
+
+class EquipmentIssueAdminDetailView(APIView):
+    @role_required('admin')
+    def patch(self, request, issue_id):
+        try:
+            issue = EquipmentIssue.objects.select_related('equipment__gym', 'reported_by').get(pk=issue_id)
+        except EquipmentIssue.DoesNotExist:
+            return Response({'error': 'Equipment issue not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EquipmentIssueAdminSerializer(issue, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_issue = serializer.save()
+        if updated_issue.status == EquipmentIssue.IssueStatus.RESOLVED and not updated_issue.resolved_at:
+            updated_issue.resolved_at = timezone.now()
+            updated_issue.save(update_fields=['resolved_at'])
+        elif updated_issue.status != EquipmentIssue.IssueStatus.RESOLVED and updated_issue.resolved_at is not None:
+            updated_issue.resolved_at = None
+            updated_issue.save(update_fields=['resolved_at'])
+
+        return Response(EquipmentIssueAdminSerializer(updated_issue).data)
 
 
 class EquipmentAdminListView(APIView):

@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Clock3, Wrench } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock3, Wrench } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { fadeUp, stagger } from './animations'
-import { createEquipment, deleteEquipment, fetchAdminEquipment, fetchEquipmentReservations, fetchGyms, updateEquipment } from '../../lib/api'
+import {
+  createEquipment,
+  deleteEquipment,
+  fetchAdminEquipment,
+  fetchAdminEquipmentIssues,
+  fetchEquipmentReservations,
+  fetchGyms,
+  updateEquipment,
+  updateEquipmentIssue,
+} from '../../lib/api'
 
 const EMPTY_FORM = {
   gym: '',
@@ -109,6 +118,107 @@ function ReservationSummary({ selectedGymId, equipment }) {
   )
 }
 
+function IssueManagementPanel({ selectedGymId }) {
+  const queryClient = useQueryClient()
+  const [statusFilter, setStatusFilter] = useState('all')
+  const { data: issues = [], isLoading } = useQuery({
+    queryKey: ['admin-equipment-issues', selectedGymId, statusFilter],
+    queryFn: () => fetchAdminEquipmentIssues({
+      gym_id: selectedGymId,
+      ...(statusFilter === 'all' ? {} : { status: statusFilter }),
+    }),
+    enabled: Boolean(selectedGymId),
+  })
+
+  const updateIssueMutation = useMutation({
+    mutationFn: ({ issueId, data }) => updateEquipmentIssue(issueId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-equipment-issues'] }),
+  })
+
+  return (
+    <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <AlertTriangle size={18} className="text-muted-foreground" />
+          <div>
+            <h2 className="text-sm font-semibold">Equipment issue reports</h2>
+            <p className="text-xs text-muted-foreground mt-1">Review member reports and keep maintenance status up to date.</p>
+          </div>
+        </div>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="h-10 rounded-lg border px-3 text-sm"
+        >
+          <option value="all">All statuses</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
+
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {[...Array(2)].map((_, i) => <div key={i} className="h-28 rounded-xl border bg-muted/30 animate-pulse" />)}
+        </div>
+      )}
+
+      {!isLoading && issues.length === 0 && (
+        <p className="text-sm text-muted-foreground">No issue reports match this gym and status filter.</p>
+      )}
+
+      {!isLoading && issues.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {issues.map((issue) => (
+            <div key={issue.id} className="rounded-xl border bg-muted/20 p-4 flex flex-col gap-3">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="font-medium">{issue.equipment_name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Reported by {issue.reporter_name} ({issue.reporter_email})
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Created {new Date(issue.created_at).toLocaleString()}
+                    {issue.resolved_at ? ` • Resolved ${new Date(issue.resolved_at).toLocaleString()}` : ''}
+                  </p>
+                </div>
+                <span className="rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">{issue.status}</span>
+              </div>
+
+              <p className="text-sm text-muted-foreground">{issue.description}</p>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => updateIssueMutation.mutate({ issueId: issue.id, data: { status: 'open' } })}
+                  disabled={updateIssueMutation.isPending || issue.status === 'open'}
+                  className="rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
+                >
+                  Mark open
+                </button>
+                <button
+                  onClick={() => updateIssueMutation.mutate({ issueId: issue.id, data: { status: 'in_progress' } })}
+                  disabled={updateIssueMutation.isPending || issue.status === 'in_progress'}
+                  className="rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
+                >
+                  In progress
+                </button>
+                <button
+                  onClick={() => updateIssueMutation.mutate({ issueId: issue.id, data: { status: 'resolved' } })}
+                  disabled={updateIssueMutation.isPending || issue.status === 'resolved'}
+                  className="rounded-lg bg-foreground px-3 py-2 text-sm text-background disabled:opacity-50"
+                >
+                  Resolve
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 export default function EquipmentPage() {
   const queryClient = useQueryClient()
   const [selectedGymId, setSelectedGymId] = useState('')
@@ -194,10 +304,14 @@ export default function EquipmentPage() {
         <ReservationSummary selectedGymId={selectedGymId} equipment={equipment} />
       )}
 
+      {selectedGymId && (
+        <IssueManagementPanel selectedGymId={selectedGymId} />
+      )}
+
       {!isLoading && equipment.length === 0 && (
         <motion.div variants={fadeUp} className="flex flex-col items-center justify-center min-h-[30vh] gap-4 text-center">
           <div className="rounded-2xl border p-5 bg-muted/30">
-            <Wrench size={28} strokeWidth={1.2} className="text-muted-foreground" />
+            {selectedGymId ? <CheckCircle2 size={28} strokeWidth={1.2} className="text-muted-foreground" /> : <Wrench size={28} strokeWidth={1.2} className="text-muted-foreground" />}
           </div>
           <p className="text-sm text-muted-foreground">No equipment has been added yet.</p>
         </motion.div>
