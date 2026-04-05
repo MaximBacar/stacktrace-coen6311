@@ -4,10 +4,11 @@ from rest_framework import status
 
 from apps.users.decorators import role_required
 
-from .models import Gym, PolicyCategory, Policy, CancellationPolicy
+from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment
 from .serializers import (
     GymSerializer, GymCapacitySerializer,
     PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer,
+    EquipmentAvailabilitySerializer,
 )
 
 
@@ -52,6 +53,28 @@ def _get_cancellation_policy(gym, policy_id):
         return CancellationPolicy.objects.get(pk=policy_id, gym=gym)
     except CancellationPolicy.DoesNotExist:
         return None
+
+
+class EquipmentAvailabilityListView(APIView):
+    def get(self, request, gym_id):
+        gym = _get_gym(gym_id)
+        if not gym:
+            return Response({'error': 'Gym not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        equipment = Equipment.objects.filter(gym=gym).prefetch_related('issues')
+        category = request.query_params.get('category')
+        status_filter = request.query_params.get('status')
+
+        if category:
+            equipment = equipment.filter(category__iexact=category)
+
+        serializer = EquipmentAvailabilitySerializer(equipment, many=True)
+        data = serializer.data
+
+        if status_filter:
+            data = [item for item in data if item['availability_status'] == status_filter]
+
+        return Response(data)
 
 
 # ── Gym Capacity ───────────────────────────────────────────────────────────────

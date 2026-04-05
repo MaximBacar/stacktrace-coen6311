@@ -1,4 +1,4 @@
-import { LayoutDashboard, Dumbbell, Brain, Salad, Settings, Sparkles, UserRound, ScrollText } from 'lucide-react'
+import { LayoutDashboard, Dumbbell, Brain, Salad, Settings, Sparkles, UserRound, ScrollText, Wrench } from 'lucide-react'
 import { CuSidebar } from './Sidebar'
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Nutrition', to: '/nutrition', icon: Salad           },
   { label: 'Fitness Profile', to: '/profile', icon: UserRound },
   { label: null,        to: null,         icon: null            },
+  { label: 'Equipment', to: '/equipment-availability', icon: Wrench },
   { label: 'Policies',  to: '/policies',  icon: ScrollText      },
   { label: 'FAQ',       to: '/faq',       icon: Sparkles        },
   { label: 'Settings',  to: '/settings',  icon: Settings        },

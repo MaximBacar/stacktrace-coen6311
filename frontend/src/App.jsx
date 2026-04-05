@@ -14,6 +14,7 @@ import SettingsPage      from './pages/members/settings/SettingsPage'
 import CoachingPage      from './pages/members/coaching/CoachingPage'
 import FaqPage           from './pages/members/faq/FaqPage'
 import MemberPoliciesPage from './pages/members/policies/PoliciesPage'
+import MemberEquipmentPage from './pages/members/gym/EquipmentAvailabilityPage'
 import MemberLayout      from './layouts/MemberLayout'
 
 import CoachLayout       from './layouts/CoachLayout'
@@ -81,6 +82,7 @@ export function App() {
                   <Route path="/nutrition" element={<NutritionPage />} />
                   <Route path="/faq"       element={<FaqPage />}       />
                   <Route path="/policies"  element={<MemberPoliciesPage />}  />
+                  <Route path="/equipment-availability" element={<MemberEquipmentPage />} />
                   <Route path="/profile"   element={<ProfilePage />}   />
                 </Route>
 

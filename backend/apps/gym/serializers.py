@@ -1,12 +1,46 @@
 from rest_framework import serializers
 
-from .models import Gym, PolicyCategory, Policy, CancellationPolicy
+from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment
 
 
 class GymSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Gym
         fields = ['id', 'name', 'address', 'phone', 'email', 'description']
+
+
+class EquipmentAvailabilitySerializer(serializers.ModelSerializer):
+    gym_name = serializers.CharField(source='gym.name', read_only=True)
+    total_units = serializers.IntegerField(source='quantity', read_only=True)
+    available_units = serializers.SerializerMethodField()
+    availability_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Equipment
+        fields = [
+            'id', 'gym', 'gym_name', 'name', 'category',
+            'total_units', 'available_units', 'status', 'availability_status', 'notes', 'updated_at',
+        ]
+        read_only_fields = ['id', 'gym_name', 'updated_at']
+
+    def get_available_units(self, obj):
+        if obj.status in {Equipment.Status.MAINTENANCE, Equipment.Status.RETIRED}:
+            return 0
+        open_issues = obj.issues.exclude(status='resolved').count()
+        return max(obj.quantity - open_issues, 0)
+
+    def get_availability_status(self, obj):
+        if obj.status == Equipment.Status.MAINTENANCE:
+            return 'maintenance'
+        if obj.status == Equipment.Status.RETIRED:
+            return 'unavailable'
+
+        available_units = self.get_available_units(obj)
+        if available_units == 0:
+            return 'unavailable'
+        if available_units < obj.quantity:
+            return 'limited'
+        return 'available'
 
 
 class GymCapacitySerializer(serializers.ModelSerializer):
