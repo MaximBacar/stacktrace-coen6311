@@ -107,3 +107,32 @@ class AssignedMembersView(APIView):
         )
         members = Member.objects.filter(id__in=member_ids)
         return Response(AssignedMemberProfileSerializer(members, many=True).data)
+
+# === SC-59 Cancellation ===
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+PENALTY_WINDOW_HOURS = 24
+PENALTY_AMOUNT = 20
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_cancellation_rules(request):
+    return Response({"rules": "Cancel within 24h = $20 penalty"})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_session(request, session_id):
+    from .models import CoachingSession
+    session = CoachingSession.objects.get(id=session_id)
+    hours_left = (session.scheduled_time - timezone.now()).total_seconds()/3600
+    penalty = PENALTY_AMOUNT if hours_left < PENALTY_WINDOW_HOURS else 0
+
+    if not request.data.get("confirm"):
+        return Response({"warning": penalty>0, "penalty": penalty})
+
+    session.status = "cancelled"
+    session.save()
+    return Response({"penalty_applied": penalty})
