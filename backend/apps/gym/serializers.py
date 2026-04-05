@@ -43,6 +43,20 @@ class EquipmentAvailabilitySerializer(serializers.ModelSerializer):
         return 'available'
 
 
+class EquipmentAdminSerializer(serializers.ModelSerializer):
+    gym_name = serializers.CharField(source='gym.name', read_only=True)
+
+    class Meta:
+        model = Equipment
+        fields = ['id', 'gym', 'gym_name', 'name', 'category', 'quantity', 'status', 'notes', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'gym_name', 'created_at', 'updated_at']
+
+    def validate_quantity(self, value):
+        if value < 1:
+            raise serializers.ValidationError('Quantity must be at least 1.')
+        return value
+
+
 class EquipmentIssueReportSerializer(serializers.ModelSerializer):
     reporter_name = serializers.SerializerMethodField(read_only=True)
 
