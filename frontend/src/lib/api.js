@@ -73,6 +73,7 @@ export const fetchAvailability  = ()           => api.get('/api/coaching/availab
 export const saveAvailability   = (slots)      => api.put('/api/coaching/availability/', { availability: slots }).then(r => r.data)
 export const fetchCoachSessions = () => api.get('/api/coaching/schedule/').then(r => r.data)
 export const reserveSessionEquipment = (sessionId, data) => api.post(`/api/coaching/sessions/${sessionId}/equipment-reservations/`, data).then(r => r.data)
+export const fetchEquipmentReservations = (equipmentId) => api.get('/api/coaching/equipment-reservations/', { params: equipmentId ? { equipment_id: equipmentId } : {} }).then(r => r.data)
 
 // Assistant
 export const fetchConversations      = ()                        => api.get('/api/faq/conversations/').then(r => r.data)

@@ -7,6 +7,7 @@ from apps.users.models import Coach, Member
 from apps.users.serializers import AssignedMemberProfileSerializer
 
 from .models import CoachingSession
+from .models import EquipmentReservation
 from .serializers import (
     CoachingSessionSerializer,
     EquipmentReservationSerializer,
@@ -128,3 +129,19 @@ class SessionEquipmentReservationView(APIView):
 
         reservation = serializer.save(session=session)
         return Response(EquipmentReservationSerializer(reservation).data, status=status.HTTP_201_CREATED)
+
+
+class AdminEquipmentReservationTrackingView(APIView):
+    @role_required('admin')
+    def get(self, request):
+        reservations = (
+            EquipmentReservation.objects
+            .filter(status=EquipmentReservation.Status.RESERVED)
+            .select_related('equipment__gym', 'session__coach', 'session__member')
+            .order_by('-created_at')
+        )
+        equipment_id = request.query_params.get('equipment_id')
+        if equipment_id:
+            reservations = reservations.filter(equipment_id=equipment_id)
+
+        return Response(EquipmentReservationSerializer(reservations, many=True).data)
