@@ -8,6 +8,7 @@ import { spring, fadeUp, stagger } from './components/animations'
 import BodyMetricsSection from './components/BodyMetricsSection'
 import DietarySection from './components/DietarySection'
 import FitnessGoalsSection from './components/FitnessGoalsSection'
+import PrivacySection from './components/PrivacySection'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -99,6 +100,8 @@ export default function ProfilePage() {
             goals={goals}
             toggle={value => toggleSet(setGoals, value)}
           />
+
+          <PrivacySection />
         </div>
 
         <motion.div

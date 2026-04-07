@@ -114,7 +114,14 @@ export const updateUserRole  = (pk, data)     => api.patch(`/api/admin/users/${p
 export const approveCoach    = (pk, data)     => api.patch(`/api/admin/coaches/${pk}/approve/`, data).then(r => r.data)
 
 // Coaching — coach-side
-export const fetchAssignedClients = () => api.get('/api/coaching/clients/').then(r => r.data)
+export const fetchAssignedClients  = ()                  => api.get('/api/coaching/clients/').then(r => r.data)
+export const fetchClientDetail     = (memberId)          => api.get(`/api/coaching/clients/${memberId}/`).then(r => r.data)
+export const requestProfileAccess  = (memberId)          => api.post('/api/coaching/access-requests/', { member_id: memberId }).then(r => r.data)
+export const fetchAccessRequests   = ()                  => api.get('/api/coaching/access-requests/').then(r => r.data)
+export const respondAccessRequest  = (requestId, action) => api.patch(`/api/coaching/access-requests/${requestId}/`, { action }).then(r => r.data)
+export const revokeAccessRequest   = (requestId)         => api.delete(`/api/coaching/access-requests/${requestId}/`)
+export const fetchCoachRequests    = ()                  => api.get('/api/coaching/requests/').then(r => r.data)
+export const respondToRequest      = (sessionId, data)   => api.patch(`/api/coaching/sessions/${sessionId}/respond/`, data).then(r => r.data)
 
 // Nutrition — active plan (Today tab)
 export const fetchNutritionPlan = ()          => api.get('/api/nutrition/plan/').then(r => r.data)
