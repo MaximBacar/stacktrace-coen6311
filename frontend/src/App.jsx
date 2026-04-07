@@ -14,6 +14,7 @@ import SettingsPage      from './pages/members/settings/SettingsPage'
 import CoachingPage      from './pages/members/coaching/CoachingPage'
 import FaqPage           from './pages/members/faq/FaqPage'
 import MemberPoliciesPage from './pages/members/policies/PoliciesPage'
+import MemberEquipmentPage from './pages/members/gym/EquipmentAvailabilityPage'
 import MemberLayout      from './layouts/MemberLayout'
 
 import CoachLayout          from './layouts/CoachLayout'
@@ -80,8 +81,10 @@ export function App() {
 
                 {/* Member-only paths — coaches get redirected to role home */}
                 <Route element={<RoleRoute role="member" />}>
-                  <Route path="/coaching"  element={<CoachingPage />}       />
-                  <Route path="/faq"       element={<FaqPage />}            />
+                  <Route path="/coaching"  element={<CoachingPage />}  />
+                  <Route path="/nutrition" element={<NutritionPage />} />
+                  <Route path="/faq"       element={<FaqPage />}       />
+                  <Route path="/equipment-availability" element={<MemberEquipmentPage />} />
                   <Route path="/policies"  element={<MemberPoliciesPage />} />
                   <Route path="/profile"   element={<ProfilePage />}        />
                 </Route>

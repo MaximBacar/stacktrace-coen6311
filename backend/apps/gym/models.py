@@ -100,4 +100,44 @@ class Booking(models.Model):
         ordering = ['-start_time']
 
     def __str__(self):
-        return f"{self.user} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"    
+        return f"{self.user} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+
+
+class Equipment(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'active', 'Active'
+        MAINTENANCE = 'maintenance', 'Maintenance'
+        RETIRED = 'retired', 'Retired'
+
+    gym = models.ForeignKey(Gym, on_delete=models.CASCADE, related_name='equipment')
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, blank=True)
+    quantity = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'equipment'
+        ordering = ['gym__name', 'category', 'name']
+
+    def __str__(self):
+        return f'{self.gym.name} - {self.name}'
+
+
+class EquipmentIssue(models.Model):
+    class IssueStatus(models.TextChoices):
+        OPEN = 'open', 'Open'
+        IN_PROGRESS = 'in_progress', 'In Progress'
+        RESOLVED = 'resolved', 'Resolved'
+
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='issues')
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=IssueStatus.choices, default=IssueStatus.OPEN)
+
+    class Meta:
+        db_table = 'equipment_issues'
+        ordering = ['-created_at']
