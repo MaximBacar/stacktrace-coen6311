@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Clock3, Wrench } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { fadeUp, stagger } from './animations'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   createEquipment,
   deleteEquipment,
@@ -43,11 +44,16 @@ function EquipmentRow({ item, onSave, onDelete }) {
             <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="h-10 rounded-lg border px-3 text-sm" />
             <input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="h-10 rounded-lg border px-3 text-sm" />
             <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: Number(e.target.value) }))} className="h-10 rounded-lg border px-3 text-sm" />
-            <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="h-10 rounded-lg border px-3 text-sm">
-              <option value="active">Active</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="retired">Retired</option>
-            </select>
+            <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows="3" className="rounded-lg border px-3 py-2 text-sm" />
           <div className="flex gap-2">
@@ -146,16 +152,17 @@ function IssueManagementPanel({ selectedGymId }) {
           </div>
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 rounded-lg border px-3 text-sm"
-        >
-          <option value="all">All statuses</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In progress</option>
-          <option value="resolved">Resolved</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="h-10 w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="in_progress">In progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading && (
@@ -265,24 +272,33 @@ export default function EquipmentPage() {
 
       <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
         <div className="grid gap-3 md:grid-cols-2">
-          <select
+          <Select
             value={selectedGymId}
-            onChange={(e) => {
-              setSelectedGymId(e.target.value)
-              setForm((current) => ({ ...current, gym: Number(e.target.value) }))
+            onValueChange={(val) => {
+              setSelectedGymId(val)
+              setForm((current) => ({ ...current, gym: Number(val) }))
             }}
-            className="h-10 rounded-lg border px-3 text-sm"
           >
-            {gyms.map((gym) => <option key={gym.id} value={gym.id}>{gym.name}</option>)}
-          </select>
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Select gym" />
+            </SelectTrigger>
+            <SelectContent>
+              {gyms.map((gym) => <SelectItem key={gym.id} value={String(gym.id)}>{gym.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Equipment name" className="h-10 rounded-lg border px-3 text-sm" />
           <input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Category" className="h-10 rounded-lg border px-3 text-sm" />
           <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: Number(e.target.value) }))} className="h-10 rounded-lg border px-3 text-sm" />
-          <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="h-10 rounded-lg border px-3 text-sm">
-            <option value="active">Active</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="retired">Retired</option>
-          </select>
+          <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
+            <SelectTrigger className="h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+              <SelectItem value="retired">Retired</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows="3" placeholder="Notes" className="rounded-lg border px-3 py-2 text-sm" />
         <button

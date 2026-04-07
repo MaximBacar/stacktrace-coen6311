@@ -6,6 +6,7 @@ from .views import (
     MealDayView, MealDayDetailView,
     MealItemView, MealItemDetailView,
     MealLogView, MealLogDetailView,
+    RecipeListView, RecipeGenerateView,
 )
 
 urlpatterns = [
@@ -28,4 +29,8 @@ urlpatterns = [
     # Meal log
     path('logs/',                                                               MealLogView.as_view()),
     path('logs/<int:log_id>/',                                                  MealLogDetailView.as_view()),
+
+    # Recipes
+    path('recipes/',                                                            RecipeListView.as_view()),
+    path('recipes/generate/',                                                   RecipeGenerateView.as_view()),
 ]

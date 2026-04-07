@@ -1,47 +1,12 @@
-from rest_framework.response    import Response
-from rest_framework.views       import APIView
-from rest_framework             import status
-from django.conf                import settings
+from rest_framework.response import Response
+from rest_framework.views   import APIView
+from rest_framework         import status
 
-from apps.users.decorators  import role_required
-from apps.users.models      import Member
+from apps.users.decorators import role_required
+from apps.users.models     import Member
 
-from .models    import AssistantConversation, AssistantMessage
-from openai     import OpenAI
-
-
-client : OpenAI = OpenAI(api_key=settings.OPENAI_API_KEY)
-
-
-SYSTEM_PROMPT : str = (
-    "You are a helpful fitness club assistant. "
-    "Answer questions about workouts, nutrition, scheduling, and gym policies. "
-    "Be concise and friendly."
-)
-
-def _generate_title(first_question: str) -> str:
-    response = client.chat.completions.create(
-        model=settings.LLM_MODEL,
-        messages=[
-            {"role": "user", "content": (
-                f"Generate a short title (5 words max, no quotes) for a conversation "
-                f"that starts with this question: {first_question}"
-            )},
-        ],
-        max_tokens=20,
-    )
-    return response.choices[0].message.content.strip()
-
-
-def _ask_assistant(question: str, history: list[dict]) -> str:
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    for msg in history:
-        role = "assistant" if msg["from_assistant"] else "user"
-        messages.append({"role": role, "content": msg["content"]})
-    messages.append({"role": "user", "content": question})
-
-    response = client.chat.completions.create(model=settings.LLM_MODEL, messages=messages)
-    return response.choices[0].message.content
+from .models import AssistantConversation, AssistantMessage
+from .agent  import ask, generate_title
 
 
 class ConversationListView(APIView):
@@ -63,22 +28,22 @@ class ConversationListView(APIView):
         except Member.DoesNotExist:
             return Response({'error': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        title = _generate_title(question)
+        title        = generate_title(question)
         conversation = AssistantConversation.objects.create(member=member, title=title)
 
         AssistantMessage.objects.create(conversation=conversation, content=question, from_assistant=False)
 
-        reply = _ask_assistant(question, [])
+        reply         = ask(question, [], member_id=request.user_id)
         assistant_msg = AssistantMessage.objects.create(conversation=conversation, content=reply, from_assistant=True)
 
         return Response({
             "conversation_id": conversation.id,
-            "title": conversation.title,
+            "title":           conversation.title,
             "reply": {
-                "id": assistant_msg.id,
-                "content": assistant_msg.content,
+                "id":             assistant_msg.id,
+                "content":        assistant_msg.content,
                 "from_assistant": True,
-                "timestamp": assistant_msg.timestamp,
+                "timestamp":      assistant_msg.timestamp,
             },
         }, status=status.HTTP_201_CREATED)
 
@@ -108,17 +73,15 @@ class ConversationMessageView(APIView):
         AssistantMessage.objects.create(conversation=conversation, content=question, from_assistant=False)
 
         history = list(conversation.messages.order_by('timestamp').values('content', 'from_assistant'))
-
-        # exclude the message we just created from history passed to AI (it's already the last item)
-        reply = _ask_assistant(question, history[:-1])
+        reply   = ask(question, history[:-1], member_id=request.user_id)
 
         assistant_msg = AssistantMessage.objects.create(conversation=conversation, content=reply, from_assistant=True)
 
         return Response({
-            "id": assistant_msg.id,
-            "content": assistant_msg.content,
+            "id":             assistant_msg.id,
+            "content":        assistant_msg.content,
             "from_assistant": True,
-            "timestamp": assistant_msg.timestamp,
+            "timestamp":      assistant_msg.timestamp,
         }, status=status.HTTP_201_CREATED)
 
     @role_required('member')

@@ -5,9 +5,8 @@ import { motion } from 'framer-motion'
 
 import { fetchGyms, fetchGymEquipment, reportEquipmentIssue } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-
-const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.25 } } }
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
+import { fadeUp, stagger } from './components/animations'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const STATUS_TONE = {
   available: 'bg-green-100 text-green-700',
@@ -147,7 +146,7 @@ function GymEquipmentSection({ gym, statusFilter, searchTerm }) {
       )}
 
       {!isLoading && filteredEquipment.length > 0 && (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-2">
+        <motion.div variants={stagger()} initial="hidden" animate="show" className="grid gap-4 md:grid-cols-2">
           {filteredEquipment.map((item) => <EquipmentCard key={item.id} item={item} />)}
         </motion.div>
       )}
@@ -164,7 +163,7 @@ export default function EquipmentAvailabilityPage() {
   })
 
   return (
-    <motion.div className="flex flex-col gap-8 px-6 py-2" variants={stagger} initial="hidden" animate="show">
+    <motion.div className="flex flex-col gap-8 px-6 py-2" variants={stagger()} initial="hidden" animate="show">
       <motion.div variants={fadeUp} className="flex flex-col gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Equipment Availability</h1>
@@ -178,17 +177,18 @@ export default function EquipmentAvailabilityPage() {
             placeholder="Search equipment, category, or notes"
             className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring md:max-w-sm"
           />
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring md:w-48"
-          >
-            <option value="all">All statuses</option>
-            <option value="available">Available</option>
-            <option value="limited">Limited</option>
-            <option value="unavailable">Unavailable</option>
-            <option value="maintenance">Maintenance</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 md:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="limited">Limited</SelectItem>
+              <SelectItem value="unavailable">Unavailable</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </motion.div>
 
@@ -210,7 +210,7 @@ export default function EquipmentAvailabilityPage() {
       )}
 
       {!isLoading && gyms.length > 0 && (
-        <motion.div variants={stagger} className="flex flex-col gap-8">
+        <motion.div variants={stagger()} className="flex flex-col gap-8">
           {gyms.map((gym) => (
             <GymEquipmentSection key={gym.id} gym={gym} statusFilter={statusFilter} searchTerm={searchTerm} />
           ))}

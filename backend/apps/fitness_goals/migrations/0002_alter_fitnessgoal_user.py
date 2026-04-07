@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fitness_goals', '0001_initial'),
+        ('fitness_profile', '0001_initial'),
         ('users', '0006_coach_avatar_url_coach_price_coach_rating_and_more'),
     ]
 

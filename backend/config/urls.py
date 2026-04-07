@@ -12,4 +12,5 @@ urlpatterns = [
     path('analytics/',      include('apps.analytics.urls')),
     path('api/admin/',      include('apps.administration.urls')),
     path('api/nutrition/',  include('apps.nutrition.urls')),
+    path('api/profile/',    include('apps.fitness_goals.urls')),
 ]

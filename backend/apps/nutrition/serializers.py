@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import NutritionPlan, MealDay, Meal, MealLog
+from .models import NutritionPlan, MealDay, Meal, MealLog, Recipe
 
 
 class MealSerializer(serializers.ModelSerializer):
@@ -58,6 +58,17 @@ class NutritionPlanSerializer(serializers.ModelSerializer):
             'target_calories', 'target_protein', 'target_carbs', 'target_fat',
             'created_at', 'days',
         ]
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Recipe
+        fields = [
+            'id', 'name', 'description', 'ingredients', 'steps',
+            'dietary_restrictions', 'calories', 'protein', 'carbs', 'fat',
+            'prep_time', 'tags', 'prompt', 'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
 
 
 class MealLogSerializer(serializers.ModelSerializer):

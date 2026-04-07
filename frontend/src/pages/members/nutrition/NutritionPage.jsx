@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CalendarDays, BookOpen, Plus, Trash2, UtensilsCrossed } from 'lucide-react'
+import { CalendarDays, BookOpen, ChefHat, Plus, Trash2, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { stagger, fadeUp, spring } from './components/animations'
@@ -17,10 +17,12 @@ import FoodLog from './components/FoodLog'
 import MealPlan from './components/MealPlan'
 import AddFoodSheet from './components/AddFoodSheet'
 import NutritionPlanEditor from './components/NutritionPlanEditor'
+import RecipesTab from './components/RecipesTab'
 
 const TABS = [
-  { key: 'today', label: 'Today',  icon: CalendarDays },
-  { key: 'plans', label: 'Plans',  icon: BookOpen     },
+  { key: 'today',   label: 'Today',   icon: CalendarDays },
+  { key: 'plans',   label: 'Plans',   icon: BookOpen     },
+  { key: 'recipes', label: 'Recipes', icon: ChefHat      },
 ]
 
 const QK_PLANS = ['nutrition-plans']
@@ -383,6 +385,17 @@ export default function NutritionPage() {
               className="flex-1 min-h-0 px-6"
             >
               <PlansTab />
+            </motion.div>
+          )}
+
+          {tab === 'recipes' && (
+            <motion.div
+              key="recipes"
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={spring}
+              className="flex-1 min-h-0"
+            >
+              <RecipesTab />
             </motion.div>
           )}
         </AnimatePresence>
