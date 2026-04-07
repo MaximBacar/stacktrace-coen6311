@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { Plus, UtensilsCrossed, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { spring, collapse } from './animations'
-import { TODAY_PLAN, uid } from './data'
 
-export default function MealPlan({ onLogAll }) {
+export default function MealPlan({ plan = [], onLogAll }) {
   const [planOpen, setPlanOpen] = useState(true)
 
   return (
@@ -29,29 +28,36 @@ export default function MealPlan({ onLogAll }) {
             exit="exit"
             className="overflow-hidden divide-y"
           >
-            {TODAY_PLAN.map(section => (
-              <div key={section.meal} className="px-4 py-3">
-                <p className="text-xs font-medium text-muted-foreground mb-2">{section.meal}</p>
-                <div className="flex flex-col gap-2">
-                  {section.items.map(item => (
-                    <div key={item.name} className="flex items-start justify-between gap-2">
-                      <p className="text-xs leading-snug">{item.name}</p>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs tabular-nums text-muted-foreground">{item.calories}</span>
-                        <span className="text-[10px] text-muted-foreground">kcal</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => onLogAll(section.meal, section.items)}
-                  className="mt-3 text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                >
-                  <Plus size={11} strokeWidth={2} />
-                  Log all
-                </button>
+            {plan.length === 0 ? (
+              <div className="flex items-center justify-center gap-2 px-4 py-6 text-xs text-muted-foreground">
+                <UtensilsCrossed size={14} strokeWidth={1.5} />
+                No plan assigned yet
               </div>
-            ))}
+            ) : (
+              plan.map(section => (
+                <div key={section.meal} className="px-4 py-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">{section.meal}</p>
+                  <div className="flex flex-col gap-2">
+                    {section.items.map(item => (
+                      <div key={item.name} className="flex items-start justify-between gap-2">
+                        <p className="text-xs leading-snug">{item.name}</p>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-xs tabular-nums text-muted-foreground">{item.calories}</span>
+                          <span className="text-[10px] text-muted-foreground">kcal</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => onLogAll(section.meal, section.items)}
+                    className="mt-3 text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  >
+                    <Plus size={11} strokeWidth={2} />
+                    Log all
+                  </button>
+                </div>
+              ))
+            )}
           </motion.div>
         ) : (
           <motion.div

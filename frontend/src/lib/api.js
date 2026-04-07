@@ -107,6 +107,31 @@ export const approveCoach    = (pk, data)     => api.patch(`/api/admin/coaches/$
 // Coaching — coach-side
 export const fetchAssignedClients = () => api.get('/api/coaching/clients/').then(r => r.data)
 
+// Nutrition — active plan (Today tab)
+export const fetchNutritionPlan = ()          => api.get('/api/nutrition/plan/').then(r => r.data)
+
+// Nutrition — plans CRUD
+export const fetchNutritionPlans    = ()                          => api.get('/api/nutrition/plans/').then(r => r.data)
+export const createNutritionPlan    = (data)                      => api.post('/api/nutrition/plans/', data).then(r => r.data)
+export const updateNutritionPlan    = (planId, data)              => api.patch(`/api/nutrition/plans/${planId}/`, data).then(r => r.data)
+export const deleteNutritionPlan    = (planId)                    => api.delete(`/api/nutrition/plans/${planId}/`)
+export const activateNutritionPlan  = (planId)                    => api.post(`/api/nutrition/plans/${planId}/activate/`).then(r => r.data)
+
+// Nutrition — days
+export const addNutritionDay        = (planId, data)              => api.post(`/api/nutrition/plans/${planId}/days/`, data).then(r => r.data)
+export const updateNutritionDay     = (planId, dayId, data)       => api.patch(`/api/nutrition/plans/${planId}/days/${dayId}/`, data).then(r => r.data)
+export const deleteNutritionDay     = (planId, dayId)             => api.delete(`/api/nutrition/plans/${planId}/days/${dayId}/`)
+
+// Nutrition — meals
+export const addNutritionMeal       = (planId, dayId, data)       => api.post(`/api/nutrition/plans/${planId}/days/${dayId}/meals/`, data).then(r => r.data)
+export const updateNutritionMeal    = (planId, dayId, mealId, data) => api.patch(`/api/nutrition/plans/${planId}/days/${dayId}/meals/${mealId}/`, data).then(r => r.data)
+export const deleteNutritionMeal    = (planId, dayId, mealId)     => api.delete(`/api/nutrition/plans/${planId}/days/${dayId}/meals/${mealId}/`)
+
+// Nutrition — meal log
+export const fetchMealLogs      = ()          => api.get('/api/nutrition/logs/').then(r => r.data)
+export const createMealLog      = (data)      => api.post('/api/nutrition/logs/', data).then(r => r.data)
+export const deleteMealLog      = (logId)     => api.delete(`/api/nutrition/logs/${logId}/`)
+
 // Analytics
 export const fetchPeakHours = (date, membershipType) => {
     const params = new URLSearchParams()
