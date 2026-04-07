@@ -7,7 +7,11 @@ from apps.users.models import Coach, Member
 from apps.users.serializers import AssignedMemberProfileSerializer
 
 from .models import CoachingSession
-from .serializers import CoachingSessionSerializer
+from .serializers import (
+    CoachingSessionSerializer,
+    EquipmentReservationSerializer,
+    EquipmentReservationCreateSerializer,
+)
 
 
 class CoachingSessionBookingView(APIView):
@@ -88,6 +92,7 @@ class CoachScheduleView(APIView):
         sessions = (
             CoachingSession.objects
             .filter(coach_id=request.user_id)
+            .prefetch_related('equipment_reservations__equipment__gym')
             .select_related('member')
             .exclude(status__in=['canceled', 'rejected'])
             .order_by('scheduled_slot')
@@ -107,3 +112,19 @@ class AssignedMembersView(APIView):
         )
         members = Member.objects.filter(id__in=member_ids)
         return Response(AssignedMemberProfileSerializer(members, many=True).data)
+
+
+class SessionEquipmentReservationView(APIView):
+    @role_required('coach')
+    def post(self, request, session_id):
+        try:
+            session = CoachingSession.objects.get(id=session_id, coach_id=request.user_id)
+        except CoachingSession.DoesNotExist:
+            return Response({'error': 'Session not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EquipmentReservationCreateSerializer(data=request.data, context={'session': session})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        reservation = serializer.save(session=session)
+        return Response(EquipmentReservationSerializer(reservation).data, status=status.HTTP_201_CREATED)
