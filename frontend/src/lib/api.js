@@ -89,6 +89,8 @@ export const updateGymCapacity          = (gymId, data)            => api.patch(
 export const fetchGymEquipment          = (gymId, params = {})     => api.get(`/api/gyms/${gymId}/equipment/`, { params }).then(r => r.data)
 export const reportEquipmentIssue       = (equipmentId, data)      => api.post(`/api/gyms/equipment/${equipmentId}/issues/`, data).then(r => r.data)
 export const fetchAdminEquipment        = (gymId)                  => api.get('/api/gyms/equipment/', { params: gymId ? { gym_id: gymId } : {} }).then(r => r.data)
+export const fetchAdminEquipmentIssues  = (params = {})            => api.get('/api/gyms/equipment-issues/', { params }).then(r => r.data)
+export const updateEquipmentIssue       = (issueId, data)          => api.patch(`/api/gyms/equipment-issues/${issueId}/`, data).then(r => r.data)
 export const createEquipment            = (data)                   => api.post('/api/gyms/equipment/', data).then(r => r.data)
 export const updateEquipment            = (equipmentId, data)      => api.patch(`/api/gyms/equipment/${equipmentId}/`, data).then(r => r.data)
 export const deleteEquipment            = (equipmentId)            => api.delete(`/api/gyms/equipment/${equipmentId}/`)

@@ -69,6 +69,30 @@ class EquipmentIssueReportSerializer(serializers.ModelSerializer):
         return f'{obj.reported_by.first_name} {obj.reported_by.last_name}'.strip()
 
 
+class EquipmentIssueAdminSerializer(serializers.ModelSerializer):
+    equipment_name = serializers.CharField(source='equipment.name', read_only=True)
+    gym = serializers.IntegerField(source='equipment.gym_id', read_only=True)
+    gym_name = serializers.CharField(source='equipment.gym.name', read_only=True)
+    reporter_name = serializers.SerializerMethodField(read_only=True)
+    reporter_email = serializers.EmailField(source='reported_by.email', read_only=True)
+
+    class Meta:
+        model = EquipmentIssue
+        fields = [
+            'id', 'equipment', 'equipment_name', 'gym', 'gym_name',
+            'reported_by', 'reporter_name', 'reporter_email',
+            'description', 'created_at', 'resolved_at', 'status',
+        ]
+        read_only_fields = [
+            'id', 'equipment', 'equipment_name', 'gym', 'gym_name',
+            'reported_by', 'reporter_name', 'reporter_email',
+            'description', 'created_at',
+        ]
+
+    def get_reporter_name(self, obj):
+        return f'{obj.reported_by.first_name} {obj.reported_by.last_name}'.strip()
+
+
 class GymCapacitySerializer(serializers.ModelSerializer):
     class Meta:
         model  = Gym

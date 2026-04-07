@@ -1,4 +1,5 @@
 from django.test import TestCase
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.test import APIClient
 
 from apps.users.models import Administrator, Member
@@ -24,6 +25,15 @@ class EquipmentAvailabilityTests(TestCase):
             last_name='User',
             password_hash='hashed-password',
         )
+        member_token = AccessToken()
+        member_token['user_id'] = self.member.id
+        member_token['role'] = 'member'
+        self.member_auth = f'Bearer {str(member_token)}'
+
+        admin_token = AccessToken()
+        admin_token['user_id'] = self.admin.id
+        admin_token['role'] = 'admin'
+        self.admin_auth = f'Bearer {str(admin_token)}'
         treadmill = Equipment.objects.create(
             gym=self.gym,
             name='Treadmill',
@@ -35,6 +45,7 @@ class EquipmentAvailabilityTests(TestCase):
         for index in range(7):
             EquipmentIssue.objects.create(
                 equipment=treadmill,
+                reported_by=self.member,
                 description=f'Issue #{index + 1}',
                 status='open',
             )
@@ -65,7 +76,7 @@ class EquipmentAvailabilityTests(TestCase):
     def test_member_can_report_equipment_issue(self):
         equipment = Equipment.objects.filter(gym=self.gym).first()
 
-        self.client.force_authenticate(user=self.member)
+        self.client.defaults['HTTP_AUTHORIZATION'] = self.member_auth
         response = self.client.post(
             f'/api/gyms/equipment/{equipment.id}/issues/',
             {'description': 'The treadmill belt keeps slipping.'},
@@ -77,7 +88,7 @@ class EquipmentAvailabilityTests(TestCase):
         self.assertEqual(response.data['reporter_name'], 'Taylor Lee')
 
     def test_admin_can_add_update_and_remove_equipment(self):
-        self.client.force_authenticate(user=self.admin)
+        self.client.defaults['HTTP_AUTHORIZATION'] = self.admin_auth
 
         create_response = self.client.post('/api/gyms/equipment/', {
             'gym': self.gym.id,
@@ -103,3 +114,23 @@ class EquipmentAvailabilityTests(TestCase):
         delete_response = self.client.delete(f'/api/gyms/equipment/{equipment_id}/')
 
         self.assertEqual(delete_response.status_code, 204)
+
+    def test_admin_can_view_and_update_equipment_issue_reports(self):
+        issue = EquipmentIssue.objects.filter(equipment__gym=self.gym).first()
+        self.client.defaults['HTTP_AUTHORIZATION'] = self.admin_auth
+
+        list_response = self.client.get(f'/api/gyms/equipment-issues/?gym_id={self.gym.id}')
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(len(list_response.data), 8)
+        self.assertEqual(list_response.data[0]['gym_name'], 'Downtown Gym')
+
+        update_response = self.client.patch(
+            f'/api/gyms/equipment-issues/{issue.id}/',
+            {'status': 'resolved'},
+            format='json',
+        )
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.data['status'], 'resolved')
+        self.assertIsNotNone(update_response.data['resolved_at'])
