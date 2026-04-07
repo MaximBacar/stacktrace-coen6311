@@ -1,7 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from apps.users.models import Member
+from apps.users.models import Administrator, Member
 
 from .models import Equipment, EquipmentIssue, Gym
 
@@ -17,6 +17,12 @@ class EquipmentAvailabilityTests(TestCase):
             password_hash='hashed-password',
             dob='2000-01-01',
             height=175,
+        )
+        self.admin = Administrator.objects.create(
+            email='admin@example.com',
+            first_name='Admin',
+            last_name='User',
+            password_hash='hashed-password',
         )
         treadmill = Equipment.objects.create(
             gym=self.gym,
@@ -69,3 +75,31 @@ class EquipmentAvailabilityTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(equipment.issues.count(), 8)
         self.assertEqual(response.data['reporter_name'], 'Taylor Lee')
+
+    def test_admin_can_add_update_and_remove_equipment(self):
+        self.client.force_authenticate(user=self.admin)
+
+        create_response = self.client.post('/api/gyms/equipment/', {
+            'gym': self.gym.id,
+            'name': 'Bench Press',
+            'category': 'Strength',
+            'quantity': 3,
+            'status': 'active',
+            'notes': 'Near the free weights area.',
+        }, format='json')
+
+        self.assertEqual(create_response.status_code, 201)
+        equipment_id = create_response.data['id']
+
+        update_response = self.client.patch(f'/api/gyms/equipment/{equipment_id}/', {
+            'quantity': 4,
+            'status': 'maintenance',
+        }, format='json')
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.data['quantity'], 4)
+        self.assertEqual(update_response.data['status'], 'maintenance')
+
+        delete_response = self.client.delete(f'/api/gyms/equipment/{equipment_id}/')
+
+        self.assertEqual(delete_response.status_code, 204)

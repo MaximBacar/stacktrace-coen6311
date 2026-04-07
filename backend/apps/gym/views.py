@@ -9,6 +9,7 @@ from .serializers import (
     GymSerializer, GymCapacitySerializer,
     PolicyCategorySerializer, PolicySerializer, CancellationPolicySerializer,
     EquipmentAvailabilitySerializer,
+    EquipmentAdminSerializer,
     EquipmentIssueReportSerializer,
 )
 
@@ -92,6 +93,49 @@ class EquipmentIssueReportListView(APIView):
 
         serializer.save(equipment=equipment, reported_by=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class EquipmentAdminListView(APIView):
+    @role_required('admin')
+    def get(self, request):
+        gym_id = request.query_params.get('gym_id')
+        equipment = Equipment.objects.select_related('gym').all()
+        if gym_id:
+            equipment = equipment.filter(gym_id=gym_id)
+        return Response(EquipmentAdminSerializer(equipment, many=True).data)
+
+    @role_required('admin')
+    def post(self, request):
+        serializer = EquipmentAdminSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class EquipmentAdminDetailView(APIView):
+    @role_required('admin')
+    def patch(self, request, equipment_id):
+        try:
+            equipment = Equipment.objects.get(pk=equipment_id)
+        except Equipment.DoesNotExist:
+            return Response({'error': 'Equipment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EquipmentAdminSerializer(equipment, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data)
+
+    @role_required('admin')
+    def delete(self, request, equipment_id):
+        try:
+            equipment = Equipment.objects.get(pk=equipment_id)
+        except Equipment.DoesNotExist:
+            return Response({'error': 'Equipment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        equipment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # ── Gym Capacity ───────────────────────────────────────────────────────────────

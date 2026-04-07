@@ -8,6 +8,8 @@ from .views import (
     CancellationPolicyListView, CancellationPolicyDetailView,
     EquipmentAvailabilityListView,
     EquipmentIssueReportListView,
+    EquipmentAdminListView,
+    EquipmentAdminDetailView,
 )
 
 urlpatterns = [
@@ -28,4 +30,6 @@ urlpatterns = [
     path('<int:gym_id>/capacity/', GymCapacityView.as_view(), name='gym-capacity'),
     path('<int:gym_id>/equipment/', EquipmentAvailabilityListView.as_view(), name='gym-equipment-list'),
     path('equipment/<int:equipment_id>/issues/', EquipmentIssueReportListView.as_view(), name='equipment-issue-report-list'),
+    path('equipment/', EquipmentAdminListView.as_view(), name='equipment-admin-list'),
+    path('equipment/<int:equipment_id>/', EquipmentAdminDetailView.as_view(), name='equipment-admin-detail'),
 ]
