@@ -1,6 +1,6 @@
 from django.db import models
 
-from apps.users.models import Administrator
+from apps.users.models import Administrator, Member
 
 
 class Gym(models.Model):
@@ -133,6 +133,7 @@ class EquipmentIssue(models.Model):
         RESOLVED = 'resolved', 'Resolved'
 
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='issues')
+    reported_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='equipment_reports')
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)

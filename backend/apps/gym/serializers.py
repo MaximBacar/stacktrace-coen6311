@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment
+from .models import Gym, PolicyCategory, Policy, CancellationPolicy, Equipment, EquipmentIssue
 
 
 class GymSerializer(serializers.ModelSerializer):
@@ -41,6 +41,18 @@ class EquipmentAvailabilitySerializer(serializers.ModelSerializer):
         if available_units < obj.quantity:
             return 'limited'
         return 'available'
+
+
+class EquipmentIssueReportSerializer(serializers.ModelSerializer):
+    reporter_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = EquipmentIssue
+        fields = ['id', 'equipment', 'reported_by', 'reporter_name', 'description', 'created_at', 'resolved_at', 'status']
+        read_only_fields = ['id', 'reported_by', 'reporter_name', 'created_at', 'resolved_at', 'status']
+
+    def get_reporter_name(self, obj):
+        return f'{obj.reported_by.first_name} {obj.reported_by.last_name}'.strip()
 
 
 class GymCapacitySerializer(serializers.ModelSerializer):

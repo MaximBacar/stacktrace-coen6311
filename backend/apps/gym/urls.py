@@ -7,6 +7,7 @@ from .views import (
     PolicyListView, PolicyDetailView,
     CancellationPolicyListView, CancellationPolicyDetailView,
     EquipmentAvailabilityListView,
+    EquipmentIssueReportListView,
 )
 
 urlpatterns = [
@@ -26,4 +27,5 @@ urlpatterns = [
     path('<int:gym_id>/cancellation-policies/<int:policy_id>/', CancellationPolicyDetailView.as_view(), name='cancellation-policy-detail'),
     path('<int:gym_id>/capacity/', GymCapacityView.as_view(), name='gym-capacity'),
     path('<int:gym_id>/equipment/', EquipmentAvailabilityListView.as_view(), name='gym-equipment-list'),
+    path('equipment/<int:equipment_id>/issues/', EquipmentIssueReportListView.as_view(), name='equipment-issue-report-list'),
 ]
