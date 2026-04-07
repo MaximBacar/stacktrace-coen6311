@@ -16,13 +16,14 @@ import FaqPage           from './pages/members/faq/FaqPage'
 import MemberPoliciesPage from './pages/members/policies/PoliciesPage'
 import MemberLayout      from './layouts/MemberLayout'
 
-import CoachLayout       from './layouts/CoachLayout'
-import DashboardPage     from './pages/coaches/DashboardPage'
-import RequestsPage      from './pages/coaches/RequestsPage'
-import ClientsPage       from './pages/coaches/ClientsPage'
-import CalendarPage      from './pages/coaches/calendar/CalendarPage'
-import CoachSettingsPage from './pages/coaches/CoachSettingsPage'
-import CoachWorkoutsPage from './pages/coaches/CoachWorkoutsPage'
+import CoachLayout          from './layouts/CoachLayout'
+import DashboardPage        from './pages/coaches/DashboardPage'
+import RequestsPage         from './pages/coaches/RequestsPage'
+import ClientsPage          from './pages/coaches/ClientsPage'
+import CalendarPage         from './pages/coaches/calendar/CalendarPage'
+import CoachSettingsPage    from './pages/coaches/CoachSettingsPage'
+import CoachWorkoutsPage    from './pages/coaches/CoachWorkoutsPage'
+import CoachNutritionPage   from './pages/coaches/CoachNutritionPage'
 
 import AdminLayout          from './layouts/AdminLayout'
 import AdminDashboardPage   from './pages/admins/DashboardPage'
@@ -48,7 +49,8 @@ function RoleIndex()    {
   if (user?.role === 'coach') return <DashboardPage />
   return <HomePage />
 }
-function RoleWorkouts() { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachWorkoutsPage /> : <WorkoutsPage />  }
+function RoleWorkouts()   { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachWorkoutsPage />   : <WorkoutsPage />   }
+function RoleNutrition()  { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachNutritionPage /> : <NutritionPage />  }
 function RoleSettings() {
   const { user } = useContext(AuthContext)
   if (user?.role === 'admin') return <AdminSettingsPage />
@@ -71,17 +73,17 @@ export function App() {
               <Route element={<AppLayout />}>
 
                 {/* Shared paths — role-aware, no guards needed */}
-                <Route index            element={<RoleIndex />}    />
-                <Route path="/workouts" element={<RoleWorkouts />} />
-                <Route path="/settings" element={<RoleSettings />} />
+                <Route index             element={<RoleIndex />}     />
+                <Route path="/workouts"  element={<RoleWorkouts />}  />
+                <Route path="/nutrition" element={<RoleNutrition />} />
+                <Route path="/settings"  element={<RoleSettings />}  />
 
                 {/* Member-only paths — coaches get redirected to role home */}
                 <Route element={<RoleRoute role="member" />}>
-                  <Route path="/coaching"  element={<CoachingPage />}  />
-                  <Route path="/nutrition" element={<NutritionPage />} />
-                  <Route path="/faq"       element={<FaqPage />}       />
-                  <Route path="/policies"  element={<MemberPoliciesPage />}  />
-                  <Route path="/profile"   element={<ProfilePage />}   />
+                  <Route path="/coaching"  element={<CoachingPage />}       />
+                  <Route path="/faq"       element={<FaqPage />}            />
+                  <Route path="/policies"  element={<MemberPoliciesPage />} />
+                  <Route path="/profile"   element={<ProfilePage />}        />
                 </Route>
 
                 {/* Coach-only paths — members/admins get redirected to role home */}

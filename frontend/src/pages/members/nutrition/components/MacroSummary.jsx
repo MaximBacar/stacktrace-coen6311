@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion'
 import { spring, fadeUp } from './animations'
-import { GOALS } from './data'
 import MacroBar from './MacroBar'
 
-export default function MacroSummary({ totals }) {
+export default function MacroSummary({ totals, goals }) {
   return (
     <motion.section variants={fadeUp} className="flex flex-col gap-5 px-6">
       <div className="flex items-end justify-between">
@@ -17,17 +16,17 @@ export default function MacroSummary({ totals }) {
           >
             {totals.calories}
           </motion.p>
-          <p className="text-sm text-muted-foreground mt-0.5">of {GOALS.calories} kcal</p>
+          <p className="text-sm text-muted-foreground mt-0.5">of {goals.calories} kcal</p>
         </div>
         <p className="text-sm text-muted-foreground tabular-nums">
-          {Math.max(GOALS.calories - totals.calories, 0)} kcal remaining
+          {Math.max(goals.calories - totals.calories, 0)} kcal remaining
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 rounded-xl border p-5">
-        <MacroBar label="Protein" consumed={totals.protein} goal={GOALS.protein} color="bg-blue-500" />
-        <MacroBar label="Carbs"   consumed={totals.carbs}   goal={GOALS.carbs}   color="bg-amber-400" />
-        <MacroBar label="Fat"     consumed={totals.fat}     goal={GOALS.fat}     color="bg-rose-400" />
+        <MacroBar label="Protein" consumed={totals.protein} goal={goals.protein} color="bg-blue-500" />
+        <MacroBar label="Carbs"   consumed={totals.carbs}   goal={goals.carbs}   color="bg-amber-400" />
+        <MacroBar label="Fat"     consumed={totals.fat}     goal={goals.fat}     color="bg-rose-400" />
       </div>
     </motion.section>
   )
