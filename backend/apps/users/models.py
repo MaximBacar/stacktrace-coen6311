@@ -24,12 +24,40 @@ class Administrator(User):
         db_table = 'administrators'
 
 
+class DietaryRestriction(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        db_table = 'dietary_restrictions'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Member(User):
-    dob = models.DateField()
+    dob    = models.DateField()
     height = models.IntegerField()
+    dietary_restrictions = models.ManyToManyField(
+        DietaryRestriction,
+        through='MemberDietaryRestriction',
+        related_name='members',
+        blank=True,
+    )
 
     class Meta:
         db_table = 'members'
+
+
+class MemberDietaryRestriction(models.Model):
+    member      = models.ForeignKey(Member,             on_delete=models.CASCADE, related_name='member_dietary_restrictions')
+    restriction = models.ForeignKey(DietaryRestriction, on_delete=models.CASCADE, related_name='member_restrictions')
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table       = 'member_dietary_restrictions'
+        unique_together = ('member', 'restriction')
 
 
 class Coach(User):

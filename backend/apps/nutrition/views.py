@@ -7,9 +7,9 @@ from rest_framework import status
 
 from apps.users.decorators import role_required
 
-from .models import NutritionPlan, MealDay, Meal, MealLog
+from .models import NutritionPlan, MealDay, Meal, MealLog, Recipe
 from .serializers import (
-    MealSerializer, MealLogSerializer,
+    MealSerializer, MealLogSerializer, RecipeSerializer,
     NutritionPlanReadSerializer, CreateNutritionPlanSerializer, CreateMealDaySerializer,
 )
 
@@ -249,6 +249,45 @@ class MealItemDetailView(APIView):
             return Response({'error': 'Meal not found.'}, status=status.HTTP_404_NOT_FOUND)
         meal.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------------
+# Recipes
+# ---------------------------------------------------------------------------
+
+class RecipeListView(APIView):
+    @role_required('member')
+    def get(self, request):
+        recipes = Recipe.objects.filter(member_id=request.user_id)
+        return Response(RecipeSerializer(recipes, many=True).data)
+
+
+class RecipeGenerateView(APIView):
+    @role_required('member')
+    def post(self, request):
+        from apps.assistant.agent.tools import suggest_recipe
+
+        prompt               = request.data.get('prompt', '').strip()
+        dietary_restrictions = request.data.get('dietary_restrictions', [])
+        max_calories         = request.data.get('max_calories')
+        min_protein          = request.data.get('min_protein')
+
+        if not prompt:
+            return Response({'error': 'prompt is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = suggest_recipe(
+            member_id=request.user_id,
+            prompt=prompt,
+            dietary_restrictions=dietary_restrictions,
+            max_calories=int(max_calories) if max_calories else None,
+            min_protein=int(min_protein) if min_protein else None,
+        )
+
+        if 'error' in result:
+            return Response({'error': result['error']}, status=status.HTTP_400_BAD_REQUEST)
+
+        recipe = Recipe.objects.get(pk=result['recipe_id'])
+        return Response(RecipeSerializer(recipe).data, status=status.HTTP_201_CREATED)
 
 
 # ---------------------------------------------------------------------------

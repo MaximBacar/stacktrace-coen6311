@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'apps.coaching',
     'apps.chat',
     'apps.assistant',
-    'apps.fitness_goals',
+    'apps.fitness_goals.apps.FitnessProfileConfig',
     'apps.gym',
     'apps.analytics',
     'apps.administration',

@@ -60,6 +60,47 @@ class Meal(models.Model):
         return self.name
 
 
+DIETARY_RESTRICTIONS = [
+    ('vegetarian',  'Vegetarian'),
+    ('vegan',       'Vegan'),
+    ('pescatarian', 'Pescatarian'),
+    ('gluten_free', 'Gluten-free'),
+    ('dairy_free',  'Dairy-free'),
+    ('nut_free',    'Nut-free'),
+    ('halal',       'Halal'),
+    ('kosher',      'Kosher'),
+    ('low_carb',    'Low-carb'),
+    ('keto',        'Keto'),
+    ('paleo',       'Paleo'),
+]
+
+DIETARY_VALUES = [code for code, _ in DIETARY_RESTRICTIONS]
+
+
+class Recipe(models.Model):
+    member               = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='recipes')
+    name                 = models.CharField(max_length=255)
+    description          = models.TextField(blank=True)
+    ingredients          = models.JSONField(default=list)
+    steps                = models.JSONField(default=list)
+    dietary_restrictions = models.JSONField(default=list)
+    calories             = models.IntegerField(default=0)
+    protein              = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    carbs                = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    fat                  = models.DecimalField(max_digits=6, decimal_places=1, default=0)
+    prep_time            = models.CharField(max_length=50, blank=True)
+    tags                 = models.JSONField(default=list)
+    prompt               = models.TextField(blank=True)
+    created_at           = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'recipes'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.member} — {self.name}'
+
+
 class MealLog(models.Model):
     member    = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='meal_logs')
     meal      = models.CharField(max_length=20, choices=MEAL_TYPES)

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { fetchCoachSessions, fetchGymEquipment, fetchGyms, reserveSessionEquipment } from '@/lib/api'
 import { fadeUp } from '../../animations'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import WeekGrid from './WeekGrid'
 import { slotKey } from './constants'
 
@@ -43,18 +44,18 @@ function SessionReservationCard({ session, options, onReserved }) {
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <select
-          value={equipmentId}
-          onChange={(event) => setEquipmentId(event.target.value)}
-          className="h-9 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          {options.length === 0 && <option value="">No equipment available</option>}
-          {options.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.gym_name} - {option.name} ({option.available_units} open)
-            </option>
-          ))}
-        </select>
+        <Select value={equipmentId} onValueChange={setEquipmentId} disabled={options.length === 0}>
+          <SelectTrigger className="h-9 w-full">
+            <SelectValue placeholder="No equipment available" />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.id} value={String(option.id)}>
+                {option.gym_name} - {option.name} ({option.available_units} open)
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <div className="flex items-center gap-2">
           <input

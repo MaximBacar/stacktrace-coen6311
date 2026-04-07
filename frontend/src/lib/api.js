@@ -141,6 +141,14 @@ export const fetchMealLogs      = ()          => api.get('/api/nutrition/logs/')
 export const createMealLog      = (data)      => api.post('/api/nutrition/logs/', data).then(r => r.data)
 export const deleteMealLog      = (logId)     => api.delete(`/api/nutrition/logs/${logId}/`)
 
+// Nutrition — recipes
+export const fetchRecipes       = ()          => api.get('/api/nutrition/recipes/').then(r => r.data)
+export const generateRecipe     = (data)      => api.post('/api/nutrition/recipes/generate/', data).then(r => r.data)
+
+// Fitness profile
+export const fetchProfile       = ()          => api.get('/api/profile/').then(r => r.data)
+export const saveProfile        = (data)      => api.put('/api/profile/', data).then(r => r.data)
+
 // Analytics
 export const fetchPeakHours = (date, membershipType) => {
     const params = new URLSearchParams()

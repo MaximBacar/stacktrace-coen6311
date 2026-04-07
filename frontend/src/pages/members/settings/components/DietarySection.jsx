@@ -11,10 +11,10 @@ export default function DietarySection({ dietary, toggle }) {
       <div className="flex flex-wrap gap-2">
         {DIETARY_OPTIONS.map(opt => (
           <ChipToggle
-            key={opt}
-            label={opt}
-            selected={dietary.includes(opt)}
-            onToggle={() => toggle(opt)}
+            key={opt.slug}
+            label={opt.label}
+            selected={dietary.includes(opt.slug)}
+            onToggle={() => toggle(opt.slug)}
           />
         ))}
       </div>

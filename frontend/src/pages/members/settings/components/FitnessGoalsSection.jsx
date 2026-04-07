@@ -11,12 +11,12 @@ export default function FitnessGoalsSection({ goals, toggle }) {
       <div className="flex flex-wrap gap-2">
         {FITNESS_GOALS.map(goal => (
           <ChipToggle
-            key={goal}
-            label={goal}
-            selected={goals.includes(goal)}
+            key={goal.slug}
+            label={goal.label}
+            selected={goals.includes(goal.slug)}
             onToggle={() => {
-              if (!goals.includes(goal) && goals.length >= 3) return
-              toggle(goal)
+              if (!goals.includes(goal.slug) && goals.length >= 3) return
+              toggle(goal.slug)
             }}
           />
         ))}
