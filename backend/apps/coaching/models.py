@@ -18,6 +18,26 @@ class CoachingSession(models.Model):
         db_table = 'coaching_sessions'
 
 
+class ProfileAccessRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING  = 'pending',  'Pending'
+        ACCEPTED = 'accepted', 'Accepted'
+        DECLINED = 'declined', 'Declined'
+
+    coach      = models.ForeignKey(Coach,  on_delete=models.CASCADE, related_name='access_requests_sent')
+    member     = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='access_requests_received')
+    status     = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table        = 'profile_access_requests'
+        unique_together = ('coach', 'member')
+
+    def __str__(self):
+        return f'{self.coach} → {self.member} ({self.status})'
+
+
 class EquipmentReservation(models.Model):
     class Status(models.TextChoices):
         RESERVED = 'reserved', 'Reserved'
