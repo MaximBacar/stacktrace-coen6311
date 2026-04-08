@@ -1,9 +1,14 @@
+from datetime import date
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from apps.users.decorators import role_required
-from apps.users.models import User, Coach, RoleChangeLog
+from apps.users.models import User, Coach, Member, RoleChangeLog
+from apps.coaching.models import CoachingSession
+from apps.gym.models import Policy, CancellationPolicy
+from apps.gym.models import EquipmentIssue
 
 from .serializers import (
     UserRoleSerializer,
@@ -73,6 +78,47 @@ class AdminUserDetailView(APIView):
         serializer.save()
         user.refresh_from_db()
         return Response(UserManagementSerializer(user).data)
+
+
+class AdminStatsView(APIView):
+    @role_required('admin')
+    def get(self, request):
+        today = date.today()
+        month_start = today.replace(day=1)
+
+        member_count  = Member.objects.count()
+        coach_count   = Coach.objects.filter(status='approved', is_active=True).count()
+        policy_count  = Policy.objects.count()
+        monthly_sessions = CoachingSession.objects.filter(
+            created_at__date__gte=month_start,
+        ).exclude(status__in=['canceled', 'rejected']).count()
+
+        open_issues = EquipmentIssue.objects.filter(status='open').count()
+
+        recent_members = list(
+            Member.objects.order_by('-created_at')[:5]
+            .values('id', 'first_name', 'last_name', 'email', 'created_at')
+        )
+        recent_sessions = []
+        for s in CoachingSession.objects.select_related('coach', 'member').order_by('-created_at')[:5]:
+            recent_sessions.append({
+                'id':             s.id,
+                'coach_name':     f'{s.coach.first_name} {s.coach.last_name}'.strip(),
+                'member_name':    f'{s.member.first_name} {s.member.last_name}'.strip(),
+                'scheduled_slot': s.scheduled_slot,
+                'status':         s.status,
+                'created_at':     s.created_at,
+            })
+
+        return Response({
+            'member_count':      member_count,
+            'coach_count':       coach_count,
+            'policy_count':      policy_count,
+            'monthly_sessions':  monthly_sessions,
+            'open_issues':       open_issues,
+            'recent_members':    recent_members,
+            'recent_sessions':   recent_sessions,
+        })
 
 
 class CoachApprovalView(APIView):

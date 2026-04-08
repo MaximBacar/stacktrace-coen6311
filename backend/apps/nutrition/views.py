@@ -7,6 +7,8 @@ from rest_framework import status
 
 from apps.users.decorators import role_required
 from apps.users.models import Member
+from apps.coaching.models import CoachingSession
+from apps.assistant.agent.tools import suggest_recipe
 
 from .models import NutritionPlan, MealDay, Meal, MealLog, Recipe
 from .serializers import (
@@ -297,7 +299,6 @@ class NutritionPlanAssignView(APIView):
         if not member_id:
             return Response({'error': 'member_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        from apps.coaching.models import CoachingSession
         is_client = CoachingSession.objects.filter(
             coach_id=request.user_id, member_id=member_id,
         ).exclude(status__in=['canceled', 'rejected']).exists()
@@ -371,8 +372,6 @@ class RecipeListView(APIView):
 class RecipeGenerateView(APIView):
     @role_required('member')
     def post(self, request):
-        from apps.assistant.agent.tools import suggest_recipe
-
         prompt               = request.data.get('prompt', '').strip()
         dietary_restrictions = request.data.get('dietary_restrictions', [])
         max_calories         = request.data.get('max_calories')

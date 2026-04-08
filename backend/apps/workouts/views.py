@@ -5,6 +5,7 @@ from rest_framework import status
 
 from apps.users.decorators import role_required
 from apps.users.models import Member
+from apps.coaching.models import CoachingSession
 from .models import WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutLog, SetLog
 from .serializers import (
     WorkoutPlanSerializer,
@@ -223,7 +224,6 @@ class WorkoutPlanAssignView(APIView):
             return Response({'error': 'member_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Verify the member is a client of this coach
-        from apps.coaching.models import CoachingSession
         is_client = CoachingSession.objects.filter(
             coach_id=request.user_id, member_id=member_id,
         ).exclude(status__in=['canceled', 'rejected']).exists()

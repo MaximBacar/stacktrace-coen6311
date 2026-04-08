@@ -8,7 +8,6 @@ import UpcomingSessions from './components/UpcomingSessions'
 import CoachSearch from './components/CoachSearch'
 import BookingSheet from './components/BookingSheet'
 import ChatPanel from '@/components/chat/ChatPanel'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 function parseSlot(scheduled_slot) {
   const parts = scheduled_slot?.split(' ', 2) ?? []

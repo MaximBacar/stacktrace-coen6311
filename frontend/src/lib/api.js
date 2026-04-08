@@ -111,6 +111,7 @@ export const updateCancellationPolicy   = (gymId, policyId, data)  => api.patch(
 export const deleteCancellationPolicy   = (gymId, policyId)        => api.delete(`/api/gyms/${gymId}/cancellation-policies/${policyId}/`)
 
 // Admin management
+export const fetchAdminStats = ()             => api.get('/api/admin/stats/').then(r => r.data)
 export const fetchAdminUsers = ()             => api.get('/api/admin/users/').then(r => r.data)
 export const updateAdminUser = (userId, data) => api.patch(`/api/admin/users/${userId}/`, data).then(r => r.data)
 export const updateUserRole  = (pk, data)     => api.patch(`/api/admin/users/${pk}/role/`, data).then(r => r.data)
@@ -161,6 +162,10 @@ export const generateRecipe     = (data)      => api.post('/api/nutrition/recipe
 // Fitness profile
 export const fetchProfile       = ()          => api.get('/api/profile/').then(r => r.data)
 export const saveProfile        = (data)      => api.put('/api/profile/', data).then(r => r.data)
+
+// Account (personal info + avatar)
+export const fetchAccount       = ()          => api.get('/api/users/me/').then(r => r.data)
+export const updateAccount      = (data)      => api.patch('/api/users/me/', data).then(r => r.data)
 
 // Analytics
 export const fetchPeakHours = (date, membershipType) => {

@@ -31,4 +31,4 @@ export const ACTIVITY_LEVELS = [
   { value: 'extreme',   label: 'Extremely active',  sub: 'Physical job + training' },
 ]
 
-export const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say']
+export const GENDERS = ['Male', 'Female', 'Prefer not to say']

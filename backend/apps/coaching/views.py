@@ -6,6 +6,13 @@ from apps.users.decorators import role_required
 from apps.users.models import Coach, Member
 from apps.users.serializers import AssignedMemberProfileSerializer
 
+from apps.fitness_goals.models import FitnessProfile
+from apps.fitness_goals.serializers import FitnessProfileSerializer
+from apps.workouts.models import WorkoutPlan, WorkoutLog
+from apps.workouts.serializers import WorkoutPlanSerializer, WorkoutLogReadSerializer
+from apps.nutrition.models import MealLog, NutritionPlan
+from apps.nutrition.serializers import MealLogSerializer, NutritionPlanReadSerializer
+
 from .models import CoachingSession, EquipmentReservation, ProfileAccessRequest
 from .serializers import (
     CoachingSessionSerializer,
@@ -86,13 +93,6 @@ class ClientDetailView(APIView):
 
         if access_status != 'accepted':
             return Response({'access': access_status, 'access_request_id': access_id})
-
-        from apps.fitness_goals.models import FitnessProfile
-        from apps.fitness_goals.serializers import FitnessProfileSerializer
-        from apps.workouts.models import WorkoutPlan, WorkoutLog
-        from apps.workouts.serializers import WorkoutPlanSerializer, WorkoutLogReadSerializer
-        from apps.nutrition.models import MealLog, NutritionPlan
-        from apps.nutrition.serializers import MealLogSerializer, NutritionPlanReadSerializer
 
         try:
             fp      = FitnessProfile.objects.get(member_id=member_id)

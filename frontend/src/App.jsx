@@ -52,6 +52,7 @@ function RoleIndex()    {
 }
 function RoleWorkouts()   { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachWorkoutsPage />   : <WorkoutsPage />   }
 function RoleNutrition()  { const { user } = useContext(AuthContext); return user?.role === 'coach' ? <CoachNutritionPage /> : <NutritionPage />  }
+function RolePolicies()   { const { user } = useContext(AuthContext); return user?.role === 'admin' ? <PoliciesPage />       : <MemberPoliciesPage /> }
 function RoleSettings() {
   const { user } = useContext(AuthContext)
   if (user?.role === 'admin') return <AdminSettingsPage />
@@ -78,14 +79,13 @@ export function App() {
                 <Route path="/workouts"  element={<RoleWorkouts />}  />
                 <Route path="/nutrition" element={<RoleNutrition />} />
                 <Route path="/settings"  element={<RoleSettings />}  />
+                <Route path="/policies"  element={<RolePolicies />}  />
 
                 {/* Member-only paths — coaches get redirected to role home */}
                 <Route element={<RoleRoute role="member" />}>
                   <Route path="/coaching"  element={<CoachingPage />}  />
-                  <Route path="/nutrition" element={<NutritionPage />} />
                   <Route path="/faq"       element={<FaqPage />}       />
                   <Route path="/equipment-availability" element={<MemberEquipmentPage />} />
-                  <Route path="/policies"  element={<MemberPoliciesPage />} />
                   <Route path="/profile"   element={<ProfilePage />}        />
                 </Route>
 
@@ -98,7 +98,6 @@ export function App() {
 
                 {/* Admin-only paths */}
                 <Route element={<RoleRoute role="admin" />}>
-                  <Route path="/policies"  element={<PoliciesPage />}      />
                   <Route path="/equipment" element={<EquipmentPage />}     />
                   <Route path="/members"   element={<AdminMembersPage />}  />
                   <Route path="/staff"     element={<StaffPage />}         />

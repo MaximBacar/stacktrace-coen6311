@@ -1,5 +1,6 @@
 import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { BadgeCheck, Bell, ChevronsUpDown, LogOut, Settings } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -15,10 +16,14 @@ export function NavUser() {
   const { user, logout } = useContext(AuthContext)
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const name  = user?.full_name ?? user?.email ?? 'User'
-  const email = user?.email ?? ''
-  const avatar = user?.avatar ?? ''
+  // Prefer live account data (updated when user saves settings)
+  const account = queryClient.getQueryData(['account'])
+
+  const name  = account ? `${account.first_name} ${account.last_name}`.trim() : (user?.full_name ?? user?.email ?? 'User')
+  const email = account?.email ?? user?.email ?? ''
+  const avatar = account?.avatar_b64 ?? ''
 
   function handleLogout() {
     logout()
