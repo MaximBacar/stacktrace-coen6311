@@ -5,9 +5,11 @@ from .views import (
     AdminUserListView,
     AdminUserDetailView,
     CoachApprovalView,
+    AdminStatsView,
 )
 
 urlpatterns = [
+    path('stats/',                        AdminStatsView.as_view(),      name='admin-stats'),
     path('users/',                        AdminUserListView.as_view(),   name='admin-user-list'),
     path('users/<int:user_id>/',          AdminUserDetailView.as_view(), name='admin-user-detail'),
     path('users/<int:pk>/role/',          UserRoleUpdateView.as_view(),  name='user-role-update'),

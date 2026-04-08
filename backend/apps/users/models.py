@@ -37,8 +37,12 @@ class DietaryRestriction(models.Model):
 
 
 class Member(User):
-    dob    = models.DateField()
-    height = models.IntegerField()
+    GENDER_CHOICES = [('male', 'Male'), ('female', 'Female'), ('prefer_not', 'Prefer not to say')]
+
+    dob        = models.DateField()
+    height     = models.IntegerField()
+    gender     = models.CharField(max_length=20, choices=GENDER_CHOICES, blank=True, default='')
+    avatar_b64 = models.TextField(blank=True, default='')
     dietary_restrictions = models.ManyToManyField(
         DietaryRestriction,
         through='MemberDietaryRestriction',
