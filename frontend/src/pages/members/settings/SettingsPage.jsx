@@ -33,7 +33,7 @@ export default function SettingsPage() {
   const initials = ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase() || '?'
 
   return (
-    <motion.div className="w-full h-full min-h-0" variants={stagger} initial="hidden" animate="show">
+    <motion.div className="w-full h-full min-h-0" variants={stagger()} initial="hidden" animate="show">
       <motion.div variants={fadeUp} className="mb-8 px-6">
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Manage your account details and photo.</p>

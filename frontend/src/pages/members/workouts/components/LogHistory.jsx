@@ -106,7 +106,7 @@ export default function LogHistory() {
   }
 
   return (
-    <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-3">
+    <motion.div variants={stagger()} initial="hidden" animate="show" className="flex flex-col gap-3">
       {logs.map(log => (
         <LogCard key={log.id} log={log} />
       ))}

@@ -15,6 +15,7 @@ import {
   updateEquipment,
   updateEquipmentIssue,
 } from '../../lib/api'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const EMPTY_FORM = {
   gym: '',
@@ -264,87 +265,91 @@ export default function EquipmentPage() {
   })
 
   return (
-    <motion.div className="flex flex-col gap-6 px-6" variants={stagger()} initial="hidden" animate="show">
-      <motion.div variants={fadeUp}>
-        <h1 className="text-xl font-semibold tracking-tight">Equipment</h1>
-        <p className="text-sm text-muted-foreground mt-1">Add, update, remove, and monitor equipment reservations in real time.</p>
-      </motion.div>
-
-      <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
-        <div className="grid gap-3 md:grid-cols-2">
-          <Select
-            value={selectedGymId}
-            onValueChange={(val) => {
-              setSelectedGymId(val)
-              setForm((current) => ({ ...current, gym: Number(val) }))
-            }}
-          >
-            <SelectTrigger className="h-10">
-              <SelectValue placeholder="Select gym" />
-            </SelectTrigger>
-            <SelectContent>
-              {gyms.map((gym) => <SelectItem key={gym.id} value={String(gym.id)}>{gym.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Equipment name" className="h-10 rounded-lg border px-3 text-sm" />
-          <input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Category" className="h-10 rounded-lg border px-3 text-sm" />
-          <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: Number(e.target.value) }))} className="h-10 rounded-lg border px-3 text-sm" />
-          <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
-            <SelectTrigger className="h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-              <SelectItem value="retired">Retired</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows="3" placeholder="Notes" className="rounded-lg border px-3 py-2 text-sm" />
-        <button
-          onClick={() => createMutation.mutate(form)}
-          disabled={createMutation.isPending || !form.gym || !form.name}
-          className="self-start rounded-lg bg-foreground px-3 py-2 text-sm text-background disabled:opacity-50"
-        >
-          {createMutation.isPending ? 'Adding...' : 'Add equipment'}
-        </button>
-      </motion.div>
-
-      {isLoading && (
-        <motion.div variants={fadeUp} className="flex flex-col gap-3">
-          {[...Array(2)].map((_, i) => <div key={i} className="h-36 rounded-xl border bg-muted/30 animate-pulse" />)}
+    <ScrollArea className="flex flex-col w-full h-full min-h-0 px-6"> 
+    <motion.div className="flex flex-col w-full h-full min-h-0 gap-6" variants={stagger()} initial="hidden" animate="show">
+      
+        <motion.div variants={fadeUp}>
+          <h1 className="text-xl font-semibold tracking-tight">Equipment</h1>
+          <p className="text-sm text-muted-foreground mt-1">Add, update, remove, and monitor equipment reservations in real time.</p>
         </motion.div>
-      )}
 
-      {!isLoading && selectedGymId && (
-        <ReservationSummary selectedGymId={selectedGymId} equipment={equipment} />
-      )}
-
-      {selectedGymId && (
-        <IssueManagementPanel selectedGymId={selectedGymId} />
-      )}
-
-      {!isLoading && equipment.length === 0 && (
-        <motion.div variants={fadeUp} className="flex flex-col items-center justify-center min-h-[30vh] gap-4 text-center">
-          <div className="rounded-2xl border p-5 bg-muted/30">
-            {selectedGymId ? <CheckCircle2 size={28} strokeWidth={1.2} className="text-muted-foreground" /> : <Wrench size={28} strokeWidth={1.2} className="text-muted-foreground" />}
+        <motion.div variants={fadeUp} className="rounded-xl border bg-card p-5 flex flex-col gap-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Select
+              value={selectedGymId}
+              onValueChange={(val) => {
+                setSelectedGymId(val)
+                setForm((current) => ({ ...current, gym: Number(val) }))
+              }}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select gym" />
+              </SelectTrigger>
+              <SelectContent>
+                {gyms.map((gym) => <SelectItem key={gym.id} value={String(gym.id)}>{gym.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Equipment name" className="h-10 rounded-lg border px-3 text-sm" />
+            <input value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} placeholder="Category" className="h-10 rounded-lg border px-3 text-sm" />
+            <input type="number" min={1} value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: Number(e.target.value) }))} className="h-10 rounded-lg border px-3 text-sm" />
+            <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="retired">Retired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <p className="text-sm text-muted-foreground">No equipment has been added yet.</p>
+          <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows="3" placeholder="Notes" className="rounded-lg border px-3 py-2 text-sm" />
+          <button
+            onClick={() => createMutation.mutate(form)}
+            disabled={createMutation.isPending || !form.gym || !form.name}
+            className="self-start rounded-lg bg-foreground px-3 py-2 text-sm text-background disabled:opacity-50"
+          >
+            {createMutation.isPending ? 'Adding...' : 'Add equipment'}
+          </button>
         </motion.div>
-      )}
 
-      {!isLoading && equipment.length > 0 && (
-        <motion.div variants={stagger(0.06)} className="flex flex-col gap-3">
-          {equipment.map((item) => (
-            <EquipmentRow
-              key={item.id}
-              item={item}
-              onSave={(equipmentId, data) => updateMutation.mutateAsync({ equipmentId, data })}
-              onDelete={(equipmentId) => deleteMutation.mutate(equipmentId)}
-            />
-          ))}
-        </motion.div>
-      )}
+        {isLoading && (
+          <motion.div variants={fadeUp} className="flex flex-col gap-3">
+            {[...Array(2)].map((_, i) => <div key={i} className="h-36 rounded-xl border bg-muted/30 animate-pulse" />)}
+          </motion.div>
+        )}
+
+        {!isLoading && selectedGymId && (
+          <ReservationSummary selectedGymId={selectedGymId} equipment={equipment} />
+        )}
+
+        {selectedGymId && (
+          <IssueManagementPanel selectedGymId={selectedGymId} />
+        )}
+
+        {!isLoading && equipment.length === 0 && (
+          <motion.div variants={fadeUp} className="flex flex-col items-center justify-center min-h-[30vh] gap-4 text-center">
+            <div className="rounded-2xl border p-5 bg-muted/30">
+              {selectedGymId ? <CheckCircle2 size={28} strokeWidth={1.2} className="text-muted-foreground" /> : <Wrench size={28} strokeWidth={1.2} className="text-muted-foreground" />}
+            </div>
+            <p className="text-sm text-muted-foreground">No equipment has been added yet.</p>
+          </motion.div>
+        )}
+
+        {!isLoading && equipment.length > 0 && (
+          <motion.div variants={stagger(0.06)} className="flex flex-col gap-3">
+            {equipment.map((item) => (
+              <EquipmentRow
+                key={item.id}
+                item={item}
+                onSave={(equipmentId, data) => updateMutation.mutateAsync({ equipmentId, data })}
+                onDelete={(equipmentId) => deleteMutation.mutate(equipmentId)}
+              />
+            ))}
+          </motion.div>
+        )}
+      
     </motion.div>
+    </ScrollArea>
   )
 }

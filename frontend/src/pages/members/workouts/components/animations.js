@@ -6,7 +6,7 @@ export const fadeUp = {
   exit:   { opacity: 0, y: -8, transition: { duration: 0.15 } },
 }
 
-export const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } }
+export const stagger = (d = 0.05) => ({ hidden: {}, show: { transition: { staggerChildren: d } } })
 
 export const collapse = {
   hidden: { height: 0, opacity: 0 },

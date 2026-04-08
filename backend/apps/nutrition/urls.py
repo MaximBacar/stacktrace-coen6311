@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     NutritionPlanView,
     NutritionPlansView, NutritionPlanDetailView, NutritionPlanActivateView,
+    NutritionPlanAssignView, NutritionPlanUnassignView,
     MealDayView, MealDayDetailView,
     MealItemView, MealItemDetailView,
     MealLogView, MealLogDetailView,
@@ -17,6 +18,8 @@ urlpatterns = [
     path('plans/',                                                              NutritionPlansView.as_view()),
     path('plans/<int:plan_id>/',                                                NutritionPlanDetailView.as_view()),
     path('plans/<int:plan_id>/activate/',                                       NutritionPlanActivateView.as_view()),
+    path('plans/<int:plan_id>/assign/',                                         NutritionPlanAssignView.as_view()),
+    path('plans/<int:plan_id>/assign/<int:member_id>/',                         NutritionPlanUnassignView.as_view()),
 
     # Days CRUD
     path('plans/<int:plan_id>/days/',                                           MealDayView.as_view()),

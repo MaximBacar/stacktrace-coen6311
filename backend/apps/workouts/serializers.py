@@ -17,12 +17,13 @@ class WorkoutDaySerializer(serializers.ModelSerializer):
 
 
 class WorkoutPlanSerializer(serializers.ModelSerializer):
-    days       = WorkoutDaySerializer(many=True, read_only=True)
-    created_by = serializers.SerializerMethodField()
+    days           = WorkoutDaySerializer(many=True, read_only=True)
+    created_by     = serializers.SerializerMethodField()
+    source_plan_id = serializers.IntegerField(read_only=True, allow_null=True)
 
     class Meta:
         model = WorkoutPlan
-        fields = ['id', 'member', 'name', 'description', 'days', 'created_by']
+        fields = ['id', 'member', 'name', 'description', 'days', 'created_by', 'source_plan_id']
 
     def get_created_by(self, obj):
         if obj.coach_id:
