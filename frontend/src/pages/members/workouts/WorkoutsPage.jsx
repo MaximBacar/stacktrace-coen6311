@@ -285,12 +285,15 @@ export default function WorkoutsPage() {
                             {plan.days.length} day{plan.days.length !== 1 ? 's' : ''}
                             {activePlanId === plan.id && <span className="ml-2 text-foreground font-medium">· active</span>}
                           </p>
-                          <p className="text-xs mt-0.5">
-                            {plan.createdBy?.type === 'coach'
-                              ? <span className="text-blue-500">Assigned by {plan.createdBy.name}</span>
-                              : <span className="text-muted-foreground/60">Created by you</span>
-                            }
-                          </p>
+                          {plan.createdBy?.type === 'coach' && (
+                            <div className="flex items-center gap-1.5 mt-1">
+                              {plan.createdBy.avatar_url
+                                ? <img src={plan.createdBy.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                                : <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center text-[9px] font-medium text-blue-600">{plan.createdBy.name?.[0]}</div>
+                              }
+                              <span className="text-xs text-blue-500">Assigned by {plan.createdBy.name}</span>
+                            </div>
+                          )}
                         </div>
                         <button onClick={e => { e.stopPropagation(); deletePlanMutation.mutate(plan.id) }}
                           className="p-1 rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
