@@ -18,15 +18,16 @@ class MealDaySerializer(serializers.ModelSerializer):
 
 
 class NutritionPlanReadSerializer(serializers.ModelSerializer):
-    days       = MealDaySerializer(many=True, read_only=True)
-    created_by = serializers.SerializerMethodField()
+    days           = MealDaySerializer(many=True, read_only=True)
+    created_by     = serializers.SerializerMethodField()
+    source_plan_id = serializers.IntegerField(read_only=True, allow_null=True)
 
     class Meta:
         model  = NutritionPlan
         fields = [
             'id', 'name', 'is_active',
             'target_calories', 'target_protein', 'target_carbs', 'target_fat',
-            'created_at', 'days', 'created_by',
+            'created_at', 'days', 'created_by', 'source_plan_id',
         ]
 
     def get_created_by(self, obj):

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.users.decorators import role_required
+from apps.users.models import Member
 from .models import WorkoutPlan, WorkoutDay, WorkoutExercise, WorkoutLog, SetLog
 from .serializers import (
     WorkoutPlanSerializer,
@@ -175,6 +176,113 @@ class WorkoutExerciseDetailView(APIView):
         except WorkoutExercise.DoesNotExist:
             return Response({'error': 'Exercise not found.'}, status=status.HTTP_404_NOT_FOUND)
         exercise.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class WorkoutPlanAssignView(APIView):
+    """
+    GET  — list members this template plan has been assigned to.
+    POST — assign (deep-copy) this template to a member.
+    """
+
+    @role_required('coach')
+    def get(self, request, plan_id):
+        try:
+            WorkoutPlan.objects.get(pk=plan_id, coach_id=request.user_id, source_plan__isnull=True)
+        except WorkoutPlan.DoesNotExist:
+            return Response({'error': 'Plan not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        assignments = (
+            WorkoutPlan.objects
+            .filter(source_plan_id=plan_id, coach_id=request.user_id)
+            .select_related('member')
+        )
+        data = [
+            {
+                'assignment_plan_id': a.id,
+                'member_id':    a.member_id,
+                'member_name':  f'{a.member.first_name} {a.member.last_name}'.strip(),
+                'member_email': a.member.email,
+            }
+            for a in assignments
+        ]
+        return Response(data)
+
+    @role_required('coach')
+    @transaction.atomic
+    def post(self, request, plan_id):
+        try:
+            template = WorkoutPlan.objects.prefetch_related('days__exercises').get(
+                pk=plan_id, coach_id=request.user_id, source_plan__isnull=True,
+            )
+        except WorkoutPlan.DoesNotExist:
+            return Response({'error': 'Plan not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        member_id = request.data.get('member_id')
+        if not member_id:
+            return Response({'error': 'member_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify the member is a client of this coach
+        from apps.coaching.models import CoachingSession
+        is_client = CoachingSession.objects.filter(
+            coach_id=request.user_id, member_id=member_id,
+        ).exclude(status__in=['canceled', 'rejected']).exists()
+        if not is_client:
+            return Response({'error': 'Member is not one of your clients.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent duplicate assignment
+        if WorkoutPlan.objects.filter(source_plan=template, member_id=member_id).exists():
+            return Response({'error': 'Plan already assigned to this member.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Deep-copy template → member
+        copy = WorkoutPlan.objects.create(
+            member_id=member_id,
+            coach_id=request.user_id,
+            source_plan=template,
+            name=template.name,
+            description=template.description,
+        )
+        for day in template.days.all():
+            new_day = WorkoutDay.objects.create(
+                workout_plan=copy,
+                day_index=day.day_index,
+                name=day.name,
+                notes=day.notes,
+            )
+            WorkoutExercise.objects.bulk_create([
+                WorkoutExercise(
+                    workout_day=new_day,
+                    name=ex.name,
+                    sets=ex.sets,
+                    reps=ex.reps,
+                    duration=ex.duration,
+                    rest_time=ex.rest_time,
+                    order_index=ex.order_index,
+                )
+                for ex in day.exercises.all()
+            ])
+
+        member = Member.objects.get(pk=member_id)
+        return Response({
+            'assignment_plan_id': copy.id,
+            'member_id':    member.id,
+            'member_name':  f'{member.first_name} {member.last_name}'.strip(),
+            'member_email': member.email,
+        }, status=status.HTTP_201_CREATED)
+
+
+class WorkoutPlanUnassignView(APIView):
+    """DELETE — remove a member's assigned copy of a template."""
+
+    @role_required('coach')
+    def delete(self, request, plan_id, member_id):
+        try:
+            assignment = WorkoutPlan.objects.get(
+                source_plan_id=plan_id, member_id=member_id, coach_id=request.user_id,
+            )
+        except WorkoutPlan.DoesNotExist:
+            return Response({'error': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

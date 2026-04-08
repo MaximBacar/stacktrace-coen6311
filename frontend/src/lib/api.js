@@ -56,6 +56,9 @@ export const cancelCoachingSession = (sessionId, memberId) => api.delete(`/api/c
 
 // Workouts
 export const fetchWorkoutPlans      = ()                              => api.get('/api/workouts/').then(r => r.data)
+export const fetchPlanAssignments   = (planId)                        => api.get(`/api/workouts/${planId}/assign/`).then(r => r.data)
+export const assignPlanToClient     = (planId, memberId)              => api.post(`/api/workouts/${planId}/assign/`, { member_id: memberId }).then(r => r.data)
+export const unassignPlanFromClient = (planId, memberId)              => api.delete(`/api/workouts/${planId}/assign/${memberId}/`)
 export const createWorkoutPlan      = (data)                          => api.post('/api/workouts/', data).then(r => r.data)
 export const updateWorkoutPlan      = (planId, data)                  => api.patch(`/api/workouts/${planId}/`, data).then(r => r.data)
 export const deleteWorkoutPlan      = (planId)                        => api.delete(`/api/workouts/${planId}/`)
@@ -127,7 +130,10 @@ export const respondToRequest      = (sessionId, data)   => api.patch(`/api/coac
 export const fetchNutritionPlan = ()          => api.get('/api/nutrition/plan/').then(r => r.data)
 
 // Nutrition — plans CRUD
-export const fetchNutritionPlans    = ()                          => api.get('/api/nutrition/plans/').then(r => r.data)
+export const fetchNutritionPlans          = ()                    => api.get('/api/nutrition/plans/').then(r => r.data)
+export const fetchNutritionPlanAssignments   = (planId)          => api.get(`/api/nutrition/plans/${planId}/assign/`).then(r => r.data)
+export const assignNutritionPlanToClient     = (planId, memberId) => api.post(`/api/nutrition/plans/${planId}/assign/`, { member_id: memberId }).then(r => r.data)
+export const unassignNutritionPlanFromClient = (planId, memberId) => api.delete(`/api/nutrition/plans/${planId}/assign/${memberId}/`)
 export const createNutritionPlan    = (data)                      => api.post('/api/nutrition/plans/', data).then(r => r.data)
 export const updateNutritionPlan    = (planId, data)              => api.patch(`/api/nutrition/plans/${planId}/`, data).then(r => r.data)
 export const deleteNutritionPlan    = (planId)                    => api.delete(`/api/nutrition/plans/${planId}/`)

@@ -93,8 +93,15 @@ function ProgramsTab({ plans }) {
             className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/30 transition-colors"
             onClick={() => setOpen(open === plan.id ? null : plan.id)}
           >
-            <div>
-              <p className="text-sm font-medium">{plan.name}</p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-medium">{plan.name}</p>
+                {plan.source_plan_id != null && (
+                  <span className="text-xs px-2 py-0.5 rounded-full border bg-blue-500/10 text-blue-600 border-blue-500/20 shrink-0">
+                    Assigned by you
+                  </span>
+                )}
+              </div>
               {plan.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{plan.description}</p>}
             </div>
             <ChevronRight
@@ -213,7 +220,12 @@ function NutritionTab({ plans, logs }) {
             {plans.map(plan => (
               <div key={plan.id} className="rounded-xl border px-4 py-3">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-medium">{plan.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{plan.name}</p>
+                    {plan.source_plan_id != null && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20">Assigned by you</span>
+                    )}
+                  </div>
                   {plan.is_active && <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Active</span>}
                 </div>
                 <div className="flex gap-3 text-xs text-muted-foreground">

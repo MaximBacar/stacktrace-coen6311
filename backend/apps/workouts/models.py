@@ -15,7 +15,14 @@ class WorkoutPlan(models.Model):
         null=True, blank=True,
         related_name="workout_plans"
     )
-    name = models.CharField(max_length=255)
+    # When set, this plan is a coach-assigned copy of the template
+    source_plan = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='assignments',
+    )
+    name        = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
 class WorkoutDay(models.Model):

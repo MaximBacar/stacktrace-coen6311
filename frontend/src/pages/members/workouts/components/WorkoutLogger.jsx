@@ -106,7 +106,7 @@ export default function WorkoutLogger({ plans, onFinish }) {
   }
 
   return (
-    <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col h-full min-h-0 gap-6">
+    <motion.div variants={stagger()} initial="hidden" animate="show" className="flex flex-col h-full min-h-0 gap-6">
 
       {plans.length > 1 && (
         <motion.div variants={fadeUp} className="flex flex-col gap-2">
@@ -148,7 +148,7 @@ export default function WorkoutLogger({ plans, onFinish }) {
       <AnimatePresence mode="wait">
         <ScrollArea className="h-full min-h-0 px-4">
           {day ? (
-            <motion.div key={day.id} variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
+            <motion.div key={day.id} variants={stagger()} initial="hidden" animate="show" className="flex flex-col gap-4">
               <motion.div variants={fadeUp} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{plan.name} — {day.label}</p>

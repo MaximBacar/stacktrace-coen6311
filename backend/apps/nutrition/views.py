@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.users.decorators import role_required
+from apps.users.models import Member
 
 from .models import NutritionPlan, MealDay, Meal, MealLog, Recipe
 from .serializers import (
@@ -248,6 +249,111 @@ class MealItemDetailView(APIView):
         except Meal.DoesNotExist:
             return Response({'error': 'Meal not found.'}, status=status.HTTP_404_NOT_FOUND)
         meal.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------------
+# Nutrition plan assignment (coach → member)
+# ---------------------------------------------------------------------------
+
+class NutritionPlanAssignView(APIView):
+    """
+    GET  — list members this template plan has been assigned to.
+    POST — deep-copy this template to a member.
+    """
+
+    @role_required('coach')
+    def get(self, request, plan_id):
+        try:
+            NutritionPlan.objects.get(pk=plan_id, coach_id=request.user_id, source_plan__isnull=True)
+        except NutritionPlan.DoesNotExist:
+            return Response({'error': 'Plan not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        assignments = (
+            NutritionPlan.objects
+            .filter(source_plan_id=plan_id, coach_id=request.user_id)
+            .select_related('member')
+        )
+        return Response([
+            {
+                'assignment_plan_id': a.id,
+                'member_id':    a.member_id,
+                'member_name':  f'{a.member.first_name} {a.member.last_name}'.strip(),
+                'member_email': a.member.email,
+            }
+            for a in assignments
+        ])
+
+    @role_required('coach')
+    def post(self, request, plan_id):
+        try:
+            template = NutritionPlan.objects.prefetch_related('days__meals').get(
+                pk=plan_id, coach_id=request.user_id, source_plan__isnull=True,
+            )
+        except NutritionPlan.DoesNotExist:
+            return Response({'error': 'Plan not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        member_id = request.data.get('member_id')
+        if not member_id:
+            return Response({'error': 'member_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.coaching.models import CoachingSession
+        is_client = CoachingSession.objects.filter(
+            coach_id=request.user_id, member_id=member_id,
+        ).exclude(status__in=['canceled', 'rejected']).exists()
+        if not is_client:
+            return Response({'error': 'Member is not one of your clients.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if NutritionPlan.objects.filter(source_plan=template, member_id=member_id).exists():
+            return Response({'error': 'Plan already assigned to this member.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        copy = NutritionPlan.objects.create(
+            member_id=member_id,
+            coach_id=request.user_id,
+            source_plan=template,
+            name=template.name,
+            is_active=False,
+            target_calories=template.target_calories,
+            target_protein=template.target_protein,
+            target_carbs=template.target_carbs,
+            target_fat=template.target_fat,
+        )
+        for day in template.days.all():
+            new_day = MealDay.objects.create(plan=copy, name=day.name, order=day.order)
+            Meal.objects.bulk_create([
+                Meal(
+                    day=new_day,
+                    meal_type=meal.meal_type,
+                    name=meal.name,
+                    calories=meal.calories,
+                    protein=meal.protein,
+                    carbs=meal.carbs,
+                    fat=meal.fat,
+                )
+                for meal in day.meals.all()
+            ])
+
+        member = Member.objects.get(pk=member_id)
+        return Response({
+            'assignment_plan_id': copy.id,
+            'member_id':    member.id,
+            'member_name':  f'{member.first_name} {member.last_name}'.strip(),
+            'member_email': member.email,
+        }, status=status.HTTP_201_CREATED)
+
+
+class NutritionPlanUnassignView(APIView):
+    """DELETE — remove a member's assigned copy of a template."""
+
+    @role_required('coach')
+    def delete(self, request, plan_id, member_id):
+        try:
+            assignment = NutritionPlan.objects.get(
+                source_plan_id=plan_id, member_id=member_id, coach_id=request.user_id,
+            )
+        except NutritionPlan.DoesNotExist:
+            return Response({'error': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

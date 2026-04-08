@@ -12,9 +12,10 @@ MEAL_TYPES = [
 
 
 class NutritionPlan(models.Model):
-    member           = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, related_name='nutrition_plans')
-    coach            = models.ForeignKey(Coach,  on_delete=models.CASCADE, null=True, blank=True, related_name='nutrition_plans')
-    name             = models.CharField(max_length=200)
+    member      = models.ForeignKey(Member, on_delete=models.CASCADE, null=True, blank=True, related_name='nutrition_plans')
+    coach       = models.ForeignKey(Coach,  on_delete=models.CASCADE, null=True, blank=True, related_name='nutrition_plans')
+    source_plan = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
+    name        = models.CharField(max_length=200)
     is_active        = models.BooleanField(default=True)
     target_calories  = models.IntegerField(default=0)
     target_protein   = models.DecimalField(max_digits=6, decimal_places=1, default=0)

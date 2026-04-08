@@ -20,7 +20,7 @@ export default function PlanEditor({
   onDeleteExercise,
 }) {
   return (
-    <motion.div key={plan.id} variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-6 h-full">
+    <motion.div key={plan.id} variants={stagger()} initial="hidden" animate="show" className="flex flex-col gap-6 h-full">
       <motion.div variants={fadeUp} className="flex items-center justify-between">
         <Input
           value={plan.name}
@@ -42,7 +42,7 @@ export default function PlanEditor({
       </motion.div>
 
       <ScrollArea className="h-full min-h-0 px-4">
-        <motion.div variants={stagger} className="flex flex-col gap-3">
+        <motion.div variants={stagger()} className="flex flex-col gap-3">
           <AnimatePresence>
             {plan.days.map(day => (
               <DayPanel

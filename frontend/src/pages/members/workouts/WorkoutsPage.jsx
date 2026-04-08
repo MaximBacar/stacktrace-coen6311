@@ -235,7 +235,7 @@ export default function WorkoutsPage() {
   }
 
   return (
-    <motion.div className="h-full min-h-0 w-full flex flex-col px-6" variants={stagger} initial="hidden" animate="show">
+    <motion.div className="h-full min-h-0 w-full flex flex-col px-6" variants={stagger()} initial="hidden" animate="show">
 
       <motion.div variants={fadeUp} className="flex items-center gap-1 mb-8 border-b">
         {TABS.map(t => (
