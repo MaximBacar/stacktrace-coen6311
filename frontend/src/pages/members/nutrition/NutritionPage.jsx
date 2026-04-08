@@ -240,6 +240,15 @@ function PlansTab() {
                     {(plan.days ?? []).length} day{(plan.days ?? []).length !== 1 ? 's' : ''}
                     {plan.is_active && <span className="ml-2 text-foreground font-medium">· active</span>}
                   </p>
+                  {plan.created_by?.type === 'coach' && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {plan.created_by.avatar_url
+                        ? <img src={plan.created_by.avatar_url} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        : <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center text-[9px] font-medium text-blue-600">{plan.created_by.name?.[0]}</div>
+                      }
+                      <span className="text-xs text-blue-500">Assigned by {plan.created_by.name}</span>
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={e => { e.stopPropagation(); deleteMutation.mutate(plan.id) }}

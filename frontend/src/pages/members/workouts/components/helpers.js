@@ -42,9 +42,10 @@ export function normalizeDay(day) {
 
 export function normalizePlan(plan) {
   return {
-    id:        plan.id,
-    name:      plan.name,
-    days:      (plan.days ?? []).map(normalizeDay),
-    createdBy: plan.created_by ?? { type: 'self' },
+    id:           plan.id,
+    name:         plan.name,
+    days:         (plan.days ?? []).map(normalizeDay),
+    createdBy:    plan.created_by ?? { type: 'self' },
+    sourcePlanId: plan.source_plan_id ?? null,
   }
 }

@@ -32,7 +32,11 @@ class NutritionPlanReadSerializer(serializers.ModelSerializer):
 
     def get_created_by(self, obj):
         if obj.coach_id:
-            return {'type': 'coach', 'name': f'{obj.coach.first_name} {obj.coach.last_name}'.strip()}
+            return {
+                'type':       'coach',
+                'name':       f'{obj.coach.first_name} {obj.coach.last_name}'.strip(),
+                'avatar_url': obj.coach.avatar_url or '',
+            }
         return {'type': 'self'}
 
 
